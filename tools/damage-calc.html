@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>破茧伤害属性计算器 v2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #504946;
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.light-mode {
+            background: #f8f4e6;
+            color: #1a1a2e;
+        }
+
+        body.light-mode h1 {
+            color: #00aa66;
+            text-shadow: 0 0 10px rgba(0, 170, 102, 0.3);
+        }
+
+        body.light-mode .panel {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .panel h2 {
+            color: #1a1a2e;
+        }
+
+        body.light-mode .section-title {
+            color: #1a1a2e;
+            background: #ffaa00;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border-bottom: 2px solid rgba(204, 136, 0, 0.4);
+        }
+
+        body.light-mode .attr-row label {
+            color: #333;
+        }
+
+        body.light-mode .attr-row input {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1a1a2e;
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+
+        body.light-mode .result-panel {
+            background: linear-gradient(135deg, rgba(200, 200, 200, 0.2), rgba(180, 180, 180, 0.2));
+        }
+
+        body.light-mode .result-section {
+            background: rgba(220, 220, 220, 0.5);
+        }
+
+        body.light-mode .result-panel h2 {
+            color: #16160e !important;
+            border-bottom-color: #ffaa00 !important;
+        }
+
+        body.light-mode .result-section h3 {
+            color: #16160e;
+        }
+
+        body.light-mode .result-item .value {
+            color: #16160e;
+        }
+
+        body.light-mode .final-damage {
+            background: linear-gradient(135deg, rgba(255, 170, 0, 0.15), rgba(255, 136, 0, 0.15));
+            border-color: #cc8800;
+        }
+
+        body.light-mode .final-damage .label {
+            color: #16160e !important;
+        }
+
+        body.light-mode .final-damage .value {
+            color: #ffaa00 !important;
+            text-shadow: none !important;
+        }
+
+        body.light-mode .formula-detail {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333;
+        }
+
+        body.light-mode .tips {
+            color: #999;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00ff88;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 1800px;
+            margin: 0 auto;
+            align-items: start;
+        }
+
+        @media (max-width: 1400px) {
+            .container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            flex: 1;
+            min-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel h2 {
+            color: #ffaa00;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #ffaa00;
+            padding-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .section-title {
+            color: #ffcc00;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            transition: all 0.3s;
+            padding: 0 10px;
+            border-radius: 5px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            line-height: 25px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        body.light-mode .section {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .attr-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .attr-row label {
+            min-width: 100px;
+            max-width: 140px;
+            font-size: 13px;
+            color: #aaa;
+            text-align: left;
+        }
+
+        .attr-row input {
+            flex: 1;
+            min-width: 60px;
+            max-width: 150px;
+            padding: 8px 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: #222;
+            color: #fff;
+            font-size: 14px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .attr-row input:hover {
+            border-color: #ffaa00;
+            box-shadow: 0 0 8px rgba(255, 170, 0, 0.3);
+        }
+
+        .attr-row input[type="checkbox"]:hover {
+            border-color: initial;
+            box-shadow: none;
+        }
+
+        .attr-row input:focus {
+            outline: none;
+            border-color: #ffaa00;
+        }
+
+        .attr-row input[type="checkbox"] {
+            accent-color: #ffaa00;
+            width: 16px;
+            height: 16px;
+        }
+
+        .attr-row .percent {
+            color: #ffaa00;
+            font-size: 12px;
+            width: 30px;
+            flex: none;
+        }
+
+        .skill-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .skill-type label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .skill-type input[type="radio"] {
+            accent-color: #ffaa00;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-calculate {
+            background: #ffcc00;
+            color: #1a1a2e;
+            display: block;
+            margin: 20px auto;
+            width: fit-content;
+            padding: 10px 20px;
+            font-weight: bold;
+            animation: breathe 2s ease-in-out infinite;
+        }
+
+        .btn-calculate:hover {
+            background: #ffaa00;
+            transform: scale(1.05);
+            animation: none;
+        }
+
+        @keyframes breathe {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(255, 204, 0, 0.8);
+            }
+        }
+
+        /* 缺少系数时的警告呼吸特效 */
+        @keyframes breatheWarn {
+            0%, 100% {
+                color: #ff4444;
+                text-shadow: 0 0 15px rgba(255, 0, 0, 0.7), 0 0 40px rgba(255, 0, 0, 0.4), 0 0 70px rgba(255, 0, 0, 0.2);
+            }
+            50% {
+                color: #ff0000;
+                text-shadow: 0 0 35px rgba(255, 0, 0, 1), 0 0 70px rgba(255, 0, 0, 0.7), 0 0 110px rgba(255, 0, 0, 0.4);
+            }
+        }
+
+        .breathe-warn {
+            animation: breatheWarn 1s ease-in-out infinite;
+            color: #ff4444 !important;
+            display: inline-block;
+        }
+
+        body.light-mode .breathe-warn {
+            color: #16160e !important;
+        }
+
+        .result-panel {
+            background: rgba(200, 200, 200, 0.15);
+            border: 2px solid #ffaa00;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-panel.min-width {
+            min-width: auto;
+        }
+
+        .result-panel h2 {
+            color: #ffaa00;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #ffaa00;
+            padding-bottom: 10px;
+        }
+
+        .result-section {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .result-section h3 {
+            color: #ffcc00;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            font-size: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item .label {
+            color: #888;
+        }
+
+        .result-item .value {
+            color: #faf0e6;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+
+        .result-item .value.updated {
+            animation: valuePop 0.4s ease;
+        }
+
+        @keyframes valuePop {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+                color: #ffcc00;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes toastFade {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            70% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
+
+        .result-item .value.damage {
+            color: #ff4444;
+            font-size: 16px;
+        }
+
+        .formula {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+
+        .final-damage {
+            text-align: center;
+            padding: 8px 15px;
+            background: linear-gradient(135deg, rgba(255, 68, 68, 0.2), rgba(255, 136, 68, 0.2));
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .final-damage .label {
+            color: #ff4444;
+            font-size: 13px;
+        }
+
+        .final-damage .value {
+            color: #ff4444;
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 8px;
+            text-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .final-damage .value.updated {
+            animation: damagePop 0.5s ease;
+        }
+
+        @keyframes damagePop {
+            0% {
+                transform: scale(1);
+            }
+            30% {
+                transform: scale(1.3);
+                color: #ffcc00;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .crit {
+            color: #ff00ff !important;
+        }
+
+        .tips {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2a2a4e 100%);
+            border: 2px solid #ff4444;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+        }
+
+        .modal h3 {
+            color: #ff4444;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .modal p {
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .reset-btn {
+            background: #ffaa00;
+            color: #1a1a2e;
+            padding: 4px 15px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 100;
+            transition: all 0.3s;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .reset-btn:hover {
+            background: #ff8800;
+            transform: scale(1.05);
+        }
+
+        .reset-btn:hover {
+            background: #ff8800;
+            transform: scale(1.05);
+        }
+
+        .modal .btn {
+            background: #ffcc00;
+            color: #1a1a2e;
+            padding: 10px 30px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .modal .btn:hover {
+            background: #ffaa00;
+        }
+    </style>
+</head>
+<body>
+    <div style="position:fixed; top:20px; right:20px; z-index:100;">
+        <button class="reset-btn" onclick="toggleTheme()" style="background:#ffaa00;"><span id="themeIcon">🌙</span> 主题</button>
+    </div>
+    <div style="position:fixed; top:20px; left:20px; display:flex; flex-direction:column; gap:20px; z-index:100;">
+        <button class="reset-btn" onclick="resetAll()"><img src="fresh.png" style="height:30px;vertical-align:middle;margin-right:1px;">重置数据</button>
+        <button class="reset-btn" onclick="calculate()" style="margin-top:1px;"><img src="zzx.png" style="height:30px;vertical-align:middle;margin-right:5px;">计算伤害</button>
+        <button class="reset-btn" onclick="generateShareLink()" style="height:42px;line-height:30px;">🔗 生成分享链接</button>
+    </div>
+    <div style="text-align:center;margin-bottom:20px;margin-top:1px;">
+    <h1 style="background-image:url('panel_dungeon_shibai.png');background-size:cover;background-position:center;padding:1px 50px;border-radius:15px;display:inline-block;margin:0 auto;color:#ffcc00;"><img src="tangsan.png" style="height:50px;vertical-align:middle;margin-right:10px;">破茧伤害属性计算器</h1>
+    </div>
+
+    <div class="container">
+        <!-- 攻击方面板 -->
+        <div class="panel">
+            <h2><img src="trove_1209.png" style="height:40px;vertical-align:middle;margin-right:8px;">攻方（魂师）</h2>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>基础属性</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkBasic')">
+                </div>
+                <div class="attr-row">
+                    <label>攻击力</label>
+                    <input type="number" id="atkAtk" value="0">
+                </div>
+                <div class="attr-row">
+                    <label>伤害加成 %</label>
+                    <input type="number" id="atkDmgAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>暴击伤害 %</label>
+                    <input type="number" id="critDmg" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>是否暴击</label>
+                    <label style="display:flex;align-items:center;gap:5px;">
+                        <input type="checkbox" id="isCrit"> 是
+                    </label>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>物理攻击</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkPhy')">
+                </div>
+                <div class="attr-row">
+                    <label>最终攻击 %</label>
+                    <input type="number" id="atkPhyAtkPct" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>物伤加成 %</label>
+                    <input type="number" id="atkPhyDmgAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>普通伤害加成 %</label>
+                    <input type="number" id="atkNormDmgAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>技能伤害加成 %</label>
+                    <input type="number" id="atkSkillDmgAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>魔法攻击</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkMag')">
+                </div>
+                <div class="attr-row">
+                    <label>最终攻击 %</label>
+                    <input type="number" id="atkMagAtkPct" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>法伤加成 %</label>
+                    <input type="number" id="atkMagDmgAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>普通伤害加成 %</label>
+                    <input type="number" id="atkNormMagDmgAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>技能伤害加成 %</label>
+                    <input type="number" id="atkSkillMagDmgAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>💚 治疗量</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('heal')">
+                </div>
+                <div class="attr-row">
+                    <label>治疗加成 %</label>
+                    <input type="number" id="healAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>受疗加成 %</label>
+                    <input type="number" id="healReceive" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="tips">治疗量 = 攻击 × (1 + 治疗加成 + 受疗加成) × 技能系数</div>
+            </div>
+        </div>
+
+        <!-- 防御方面板 -->
+        <div class="panel">
+            <h2><img src="equipment_1508.png" style="height:40px;vertical-align:middle;margin-right:8px;">守方（对手）</h2>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>基础属性</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('defBasic')">
+                </div>
+                <div class="attr-row">
+                    <label>防御</label>
+                    <input type="number" id="defBaseDef" value="0">
+                </div>
+                <div class="attr-row">
+                    <label>物理防御</label>
+                    <input type="number" id="defPhyDef" value="0">
+                </div>
+                <div class="attr-row">
+                    <label>魔法防御</label>
+                    <input type="number" id="defMagDef" value="0">
+                </div>
+                <div class="attr-row">
+                    <label>伤害减免 %</label>
+                    <input type="number" id="defDmgRed" value="0">
+                    <span class="percent">%</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>物理防御</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('defPhy')">
+                </div>
+                <div class="attr-row">
+                    <label>最终防御 %</label>
+                    <input type="number" id="defPhyDefPct" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>最终物理防御 %</label>
+                    <input type="number" id="defPhyDefPct2" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>物伤减免 %</label>
+                    <input type="number" id="defPhyDmgRed" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>普攻物伤减免 %</label>
+                    <input type="number" id="defNormPhyDmgRed" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>技能物伤减免 %</label>
+                    <input type="number" id="defSkillPhyDmgRed" value="0">
+                    <span class="percent">%</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>魔法防御</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('defMag')">
+                </div>
+                <div class="attr-row">
+                    <label>最终防御 %</label>
+                    <input type="number" id="defMagDefPct" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>最终魔法防御 %</label>
+                    <input type="number" id="defMagDefPct2" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>法伤减免 %</label>
+                    <input type="number" id="defMagDmgRed" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>普攻法伤减免 %</label>
+                    <input type="number" id="defNormMagDmgRed" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>技能法伤减免 %</label>
+                    <input type="number" id="defSkillMagDmgRed" value="0">
+                    <span class="percent">%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 技能设置 -->
+        <div class="panel">
+            <h2><img src="skill.jpg" style="height:40px;vertical-align:middle;margin-right:8px;">技能设置</h2>
+
+            <div class="section">
+                <div class="section-title">技能类型</div>
+                <div class="skill-type">
+                    <label><input type="radio" name="skillType" value="physical" checked> 物理攻击</label>
+                    <label><input type="radio" name="skillType" value="magical"> 魔法攻击</label>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>普攻/技能系数</span>
+                </div>
+                <div class="attr-row">
+                    <label>普攻系数</label>
+                    <input type="number" id="normCoeff" value="0" step="0.1">
+                </div>
+                <div class="attr-row">
+                    <label>技能系数</label>
+                    <input type="number" id="skillCoeff" value="0" step="0.1">
+                </div>
+                <div class="tips">普攻系数=1.0，技能系数根据技能伤害填</div>
+            </div>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>🔒 伤害系数限制 (clamp)</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('clamp')">
+                </div>
+                <div class="attr-row">
+                    <label>最小系数 k1</label>
+                    <input type="number" id="k1" value="0" step="0.01">
+                </div>
+                <div class="attr-row">
+                    <label>最大系数 k2</label>
+                    <input type="number" id="k2" value="2.0" step="0.01">
+                </div>
+                <div class="tips">伤害系数 = clamp(k1, 1 + 加成% - 减免%, k2)</div>
+            </div>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>⚔️ 战力压制(com_battle_design)</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('suppress')">
+                </div>
+                <div class="attr-row">
+                    <label>是否生效</label>
+                    <label style="display:flex;align-items:center;gap:5px;">
+                        <input type="checkbox" id="enableSuppress"> 启用压制
+                    </label>
+                </div>
+                <div class="attr-row">
+                    <label>攻击队伍战力</label>
+                    <input type="number" id="atkTeamPower" value="0">
+                </div>
+                <div class="attr-row">
+                    <label>受击队伍战力</label>
+                    <input type="number" id="defTeamPower" value="0">
+                </div>
+                <div class="attr-row">
+                    <label>ratio系数</label>
+                    <input type="number" id="ratioCoeff" value="0" step="0.1">
+                </div>
+                <div class="attr-row">
+                    <label>ratio_base系数</label>
+                    <input type="number" id="ratioBase" value="0" step="0.1">
+                </div>
+                <div class="attr-row">
+                    <label>ratio_max系数</label>
+                    <input type="number" id="ratioMax" value="1" step="0.1" disabled>
+                    <span class="tips" style="margin-left:10px;">(默认1)</span>
+                </div>
+                <div class="tips">压制系数 = min(max((攻击/受击-1)×ratio + ratio_base, 0), 1)</div>
+            </div>
+
+            <div class="section">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>⚔️ PVP模块</span>
+                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('pvp')">
+                </div>
+                <div class="attr-row">
+                    <label>是否生效</label>
+                    <label style="display:flex;align-items:center;gap:5px;">
+                        <input type="checkbox" id="enablePvp"> 启用PVP
+                    </label>
+                </div>
+                <div class="attr-row">
+                    <label>攻击方PVP伤害加成 %</label>
+                    <input type="number" id="pvpAtkAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>防守方PVP伤害减免 %</label>
+                    <input type="number" id="pvpDefRed" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="tips">PVP伤害 = 扣血量 × clamp(1+加成%,1,2) / clamp(1+减免%,1,2)</div>
+            </div>
+        </div>
+
+        <!-- 结果面板 (第4列) -->
+        <div class="result-panel">
+            <h2><img src="result.png" style="height:40px;vertical-align:middle;margin-right:8px;">计算结果</h2>
+
+            <div class="result-section">
+                <h3>攻击方计算</h3>
+                <div class="result-item">
+                    <span class="label">基础攻击</span>
+                    <span class="value" id="resBaseAtk">1000</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">最终攻击 %</span>
+                    <span class="value" id="resFinalAtkPct">0%</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">最终攻击值</span>
+                    <span class="value" id="resFinalAtk">1000</span>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <h3>防御方计算</h3>
+                <div class="result-item">
+                    <span class="label">基础防御</span>
+                    <span class="value" id="resBaseDef">500</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">最终防御 %</span>
+                    <span class="value" id="resFinalDefPct">0%</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">最终防御值</span>
+                    <span class="value" id="resFinalDef">500</span>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <h3>伤害加成/减免</h3>
+                <div class="result-item">
+                    <span class="label">伤害加成总计</span>
+                    <span class="value" id="resDmgAdd">0%</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">伤害减免总计</span>
+                    <span class="value" id="resDmgRed">0%</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">伤害系数</span>
+                    <span class="value" id="resDmgCoeff">1.0</span>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <h3>⚔️ 战力压制</h3>
+                <div class="result-item">
+                    <span class="label">攻击/受击 战力比</span>
+                    <span class="value" id="resPowerRatio">1.0</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">压制系数</span>
+                    <span class="value" id="resSuppressCoeff">0</span>
+                </div>
+            </div>
+
+            <div class="final-damage">
+                <div class="label" style="color:#faf0e6;">⚔️ 普攻扣血量</div>
+                <div class="value" id="normDamage" style="color:#faf0e6;">0</div>
+            </div>
+
+            <div class="final-damage" style="margin-top:10px;">
+                <div class="label" style="color:#faf0e6;">⚔️ 技能扣血量</div>
+                <div class="value" id="skillDamage" style="color:#faf0e6;">0</div>
+            </div>
+
+            <div class="final-damage" style="margin-top:10px; background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,200,100,0.15));">
+                <div class="label" style="color:#faf0e6;">💚 普攻治疗量</div>
+                <div class="value" id="healNormAmount" style="color:#faf0e6;">0</div>
+            </div>
+
+            <div class="final-damage" style="margin-top:10px; background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,200,100,0.15));">
+                <div class="label" style="color:#faf0e6;">💚 技能治疗量</div>
+                <div class="value" id="healSkillAmount" style="color:#faf0e6;">0</div>
+            </div>
+
+            <div class="formula">
+                <div>公式：扣血 = (攻方攻击 - 守方防御) × (1+ 伤害加减系数)× (普攻/技能)系数</div>
+                <div>治疗量 = 攻击 × (1 + 治疗加成 + 受疗加成) × 技能系数</div>
+                <div id="formulaDetail"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取输入值
+        function getVal(id) {
+            const val = parseFloat(document.getElementById(id).value);
+            return isNaN(val) ? 0 : val;
+        }
+
+        function getValById(id) {
+            const el = document.getElementById(id);
+            return el ? (parseFloat(el.value) || 0) : 0;
+        }
+
+        // 计算
+        let skipValidation = false;
+        function calculate() {
+            // ===== 验证 =====
+            const normCoeff = getVal('normCoeff');
+            const skillCoeff = getVal('skillCoeff');
+            if (!skipValidation && normCoeff <= 0 && skillCoeff <= 0) {
+                // 普攻系数和技能系数都为0时，"普攻/技能系数"标题显示呼吸特效
+                document.querySelectorAll('.section-title').forEach(el => {
+                    if (el.textContent.includes('普攻/技能系数') || el.textContent.trim() === '普攻/技能系数') {
+                        el.classList.add('breathe-warn');
+                    }
+                });
+                showModal('缺少普攻系数或技能系数数值');
+                return;
+            } else if (!skipValidation && (normCoeff > 0 || skillCoeff > 0)) {
+                // 系数有效时才移除呼吸特效，其他输入框变化不影响
+                document.querySelectorAll('.section-title').forEach(el => el.classList.remove('breathe-warn'));
+            }
+
+            // ===== 攻击方 =====
+            const baseAtk = getVal('atkAtk');
+            const atkDmgAdd = getVal('atkDmgAdd'); // 基础伤害加成%
+
+            // 物理攻击相关
+            const atkPhyAtkPct = getVal('atkPhyAtkPct'); // 物理最终攻击%
+            const atkPhyDmgAdd = getVal('atkPhyDmgAdd'); // 物理伤害加成%
+            const atkNormDmgAdd = getVal('atkNormDmgAdd'); // 普通物理伤害加成%
+            const atkSkillDmgAdd = getVal('atkSkillDmgAdd'); // 技能物理伤害加成%
+
+            // 魔法攻击相关
+            const atkMagAtkPct = getVal('atkMagAtkPct'); // 魔法最终攻击%
+            const atkMagDmgAdd = getVal('atkMagDmgAdd'); // 魔法伤害加成%
+            const atkNormMagDmgAdd = getVal('atkNormMagDmgAdd'); // 普通魔法伤害加成%
+            const atkSkillMagDmgAdd = getVal('atkSkillMagDmgAdd'); // 技能魔法伤害加成%
+
+            // ===== 防御方 =====
+            // 物理防御 = 防御 + 物理防御
+            // 魔法防御 = 防御 + 魔法防御
+            const defBaseDef = getVal('defBaseDef'); // 基础防御
+            const basePhyDef = defBaseDef + getVal('defPhyDef'); // 物理防御
+            const baseMagDef = defBaseDef + getVal('defMagDef'); // 魔法防御
+            const defDmgRed = getVal('defDmgRed'); // 基础伤害减免%
+
+            // 物理防御相关
+            const defPhyDefPct = getVal('defPhyDefPct'); // 最终防御%
+            const defPhyDefPct2 = getVal('defPhyDefPct2'); // 最终物理防御%
+            const defPhyDmgRed = getVal('defPhyDmgRed'); // 物理伤害减免%
+            const defNormPhyDmgRed = getVal('defNormPhyDmgRed'); // 普通物理伤害减免
+            const defSkillPhyDmgRed = getVal('defSkillPhyDmgRed'); // 技能物理伤害减免
+
+            // 魔法防御相关
+            const defMagDefPct = getVal('defMagDefPct'); // 最终防御%
+            const defMagDefPct2 = getVal('defMagDefPct2'); // 最终魔法防御%
+            const defMagDmgRed = getVal('defMagDmgRed'); // 魔法伤害减免%
+            const defNormMagDmgRed = getVal('defNormMagDmgRed'); // 普通魔法伤害减免
+            const defSkillMagDmgRed = getVal('defSkillMagDmgRed'); // 技能魔法伤害减免
+
+            // ===== 技能设置 =====
+            const skillType = document.querySelector('input[name="skillType"]:checked').value;
+            const critDmg = getVal('critDmg');
+            const isCrit = document.getElementById('isCrit').checked;
+            // 伤害系数 clamp 范围（从输入框读取）
+            const k1 = getVal('k1');
+            const k2 = getVal('k2') || 2;
+
+
+            // ===== 战力压制 =====
+            const enableSuppress = document.getElementById('enableSuppress').checked;
+            const atkTeamPower = getVal('atkTeamPower');
+            const defTeamPower = getVal('defTeamPower');
+            const ratioCoeff = getVal('ratioCoeff');
+            const ratioBase = getVal('ratioBase');
+            const ratioMax = 1; // 固定为1
+
+            // ===== 计算攻击方 =====
+            let finalAtkPct = 0;
+            // 普攻/技能各自独立的伤害加成（基础加成共用，普通/技能加成分开）
+            let dmgAddNorm = atkDmgAdd;   // 普攻用
+            let dmgAddSkill = atkDmgAdd;  // 技能用
+
+            if (skillType === 'physical') {
+                finalAtkPct = atkPhyAtkPct;
+                // 物理伤害加成（通用）两者都加
+                dmgAddNorm  += atkPhyDmgAdd + atkNormDmgAdd;   // 普攻：基础+物理+普通
+                dmgAddSkill += atkPhyDmgAdd + atkSkillDmgAdd;  // 技能：基础+物理+技能
+            } else {
+                finalAtkPct = atkMagAtkPct;
+                dmgAddNorm  += atkMagDmgAdd + atkNormMagDmgAdd;   // 普攻：基础+法术+普通
+                dmgAddSkill += atkMagDmgAdd + atkSkillMagDmgAdd;  // 技能：基础+法术+技能
+            }
+
+            // 最终攻击 = 基础攻击 × (1 + 最终攻击%)
+            const finalAtk = baseAtk * (1 + finalAtkPct / 100);
+
+            // ===== 计算防御方 =====
+            let finalDefPct = 0;
+            // 普攻/技能各自独立的伤害减免
+            let dmgRedNorm  = defDmgRed;  // 普攻用
+            let dmgRedSkill = defDmgRed;  // 技能用
+            let baseDef, finalDef;
+
+            if (skillType === 'physical') {
+                baseDef = basePhyDef;
+                finalDefPct = defPhyDefPct + defPhyDefPct2;
+                dmgRedNorm  += defPhyDmgRed + defNormPhyDmgRed;   // 普攻：基础+物理+普通减免
+                dmgRedSkill += defPhyDmgRed + defSkillPhyDmgRed;  // 技能：基础+物理+技能减免
+            } else {
+                baseDef = baseMagDef;
+                finalDefPct = defMagDefPct + defMagDefPct2;
+                dmgRedNorm  += defMagDmgRed + defNormMagDmgRed;   // 普攻：基础+法术+普通减免
+                dmgRedSkill += defMagDmgRed + defSkillMagDmgRed;  // 技能：基础+法术+技能减免
+            }
+
+            // 最终防御 = 基础防御 × (1 + 最终防御%)
+            finalDef = baseDef * (1 + finalDefPct / 100);
+
+            // ===== 伤害系数（普攻/技能各自独立）=====
+            // 伤害系数 = clamp(k1, 1 + 攻方伤害加成% - 守方伤害减免%, k2)
+            let dmgCoeffNorm  = Math.max(k1, Math.min(k2, 1 + (dmgAddNorm  - dmgRedNorm)  / 100));
+            let dmgCoeffSkill = Math.max(k1, Math.min(k2, 1 + (dmgAddSkill - dmgRedSkill) / 100));
+            // 结果面板展示用（取技能系数优先，无则取普攻）
+            let dmgCoeff = skillCoeff > 0 ? dmgCoeffSkill : dmgCoeffNorm;
+
+            // ===== 暴击 =====
+            // 暴击时：基础100% + 额外暴击伤害%（暴击在clamp之后独立乘，不受clamp限制）
+            if (isCrit) {
+                dmgCoeffNorm  *= (2 + critDmg / 100);
+                dmgCoeffSkill *= (2 + critDmg / 100);
+                dmgCoeff = skillCoeff > 0 ? dmgCoeffSkill : dmgCoeffNorm;
+            }
+
+            // ===== 战力压制计算 =====
+            // 压制系数 = min(max((攻击/受击 - 1) × ratio + ratio_base, 0), 1)
+            let powerRatio = defTeamPower > 0 ? atkTeamPower / defTeamPower : 1;
+            let suppressCoeff;
+
+            if (enableSuppress) {
+                suppressCoeff = (powerRatio - 1) * ratioCoeff + ratioBase;
+                suppressCoeff = Math.max(0, Math.min(suppressCoeff, ratioMax));
+            } else {
+                suppressCoeff = 0; // 不生效时压制系数为0，不影响伤害
+            }
+
+            // ===== 最终伤害 =====
+            // 伤害 = (攻方攻击 - 守方防御) × 伤害系数(普攻/技能各自) × 系数
+            // 最低伤害为1
+            const baseDamage = Math.max(0, finalAtk - finalDef);
+
+            let normDamage = 0;
+            let skillDamage = 0;
+
+            if (normCoeff > 0) {
+                normDamage = Math.floor(baseDamage * dmgCoeffNorm * normCoeff);  // 普攻用普攻系数，先不做保底
+            }
+
+            if (skillCoeff > 0) {
+                skillDamage = Math.floor(baseDamage * dmgCoeffSkill * skillCoeff);  // 技能用技能系数，先不做保底
+            }
+
+            // ===== 治疗量 =====
+            // 治疗量 = 攻击 × (1 + 治疗加成 + 受疗加成) × 技能系数
+            const healAdd = getVal('healAdd');
+            const healReceive = getVal('healReceive');
+            let healNorm = 0;
+            let healSkill = 0;
+            if (normCoeff > 0) {
+                healNorm = finalAtk * (1 + (healAdd + healReceive) / 100) * normCoeff;
+                healNorm = Math.floor(healNorm);
+            }
+            if (skillCoeff > 0) {
+                healSkill = finalAtk * (1 + (healAdd + healReceive) / 100) * skillCoeff;
+                healSkill = Math.floor(healSkill);
+            }
+            // ===== PVP伤害计算 =====
+            // PVP伤害 = 扣血量 × clamp(1+加成%,k1,k2) / clamp(1+减免%,k3,k4)
+            const enablePvp = document.getElementById('enablePvp').checked;
+            const pvpAtkAdd = getVal('pvpAtkAdd');
+            const pvpDefRed = getVal('pvpDefRed');
+            
+            // PVP固定系数：k1=1, k2=2, k3=1, k4=2
+            const pvpK1 = 1;
+            const pvpK2 = 2;
+            const pvpK3 = 1;
+            const pvpK4 = 2;
+            
+            let pvpAtkCoeff = 1;
+            let pvpDefCoeff = 1;
+            
+            if (enablePvp) {
+                // PVP加成系数 = clamp(1 + PVP伤害加成%, k1, k2)
+                pvpAtkCoeff = 1 + pvpAtkAdd / 100;
+                pvpAtkCoeff = Math.max(pvpK1, Math.min(pvpK2, pvpAtkCoeff));
+                
+                // PVP减免系数 = clamp(1 + PVP伤害减免%, k3, k4)
+                pvpDefCoeff = 1 + pvpDefRed / 100;
+                pvpDefCoeff = Math.max(pvpK3, Math.min(pvpK4, pvpDefCoeff));
+            }
+            
+            // ===== 计算最终扣血量 =====
+            // 显示普攻和技能伤害（战力压制和PVP直接叠加）
+            let finalNormDamage = normDamage;
+            let finalSkillDamage = skillDamage;
+            
+            // 战力压制启用时叠加
+            if (enableSuppress) {
+                finalNormDamage = Math.floor(normDamage * (1 + suppressCoeff));
+                finalSkillDamage = Math.floor(skillDamage * (1 + suppressCoeff));
+            }
+            
+            // PVP启用时叠加
+            if (enablePvp) {
+                finalNormDamage = Math.floor(finalNormDamage * pvpAtkCoeff / pvpDefCoeff);
+                finalSkillDamage = Math.floor(finalSkillDamage * pvpAtkCoeff / pvpDefCoeff);
+            }
+            
+            // 记录是否触发最低1点保底（攻击 ≤ 防御时触发）
+            const normFloored  = normCoeff  > 0 && finalNormDamage  < 1;
+            const skillFloored = skillCoeff > 0 && finalSkillDamage < 1;
+            finalNormDamage  = normCoeff  > 0 ? Math.max(1, finalNormDamage)  : 0;
+            finalSkillDamage = skillCoeff > 0 ? Math.max(1, finalSkillDamage) : 0;
+            
+            document.getElementById('resBaseAtk').textContent = baseAtk.toLocaleString();
+            document.getElementById('resFinalAtkPct').textContent = finalAtkPct.toFixed(1) + '%';
+            document.getElementById('resFinalAtk').textContent = finalAtk.toFixed(1);
+
+            document.getElementById('resBaseDef').textContent = baseDef.toLocaleString();
+            document.getElementById('resFinalDefPct').textContent = finalDefPct.toFixed(1) + '%';
+            document.getElementById('resFinalDef').textContent = finalDef.toFixed(1);
+
+            // 结果面板：优先显示技能系数，无技能系数时显示普攻系数
+            const displayDmgAdd = skillCoeff > 0 ? dmgAddSkill : dmgAddNorm;
+            const displayDmgRed = skillCoeff > 0 ? dmgRedSkill : dmgRedNorm;
+            document.getElementById('resDmgAdd').textContent = displayDmgAdd.toFixed(1) + '%';
+            document.getElementById('resDmgRed').textContent = displayDmgRed.toFixed(1) + '%';
+            document.getElementById('resDmgCoeff').textContent = dmgCoeff.toFixed(3);
+
+            // 战力压制显示
+            document.getElementById('resPowerRatio').textContent = powerRatio.toFixed(7);
+            document.getElementById('resSuppressCoeff').textContent = suppressCoeff.toFixed(7);
+
+            // 普攻/技能伤害：触发保底时加标注
+            const normDmgEl  = document.getElementById('normDamage');
+            const skillDmgEl = document.getElementById('skillDamage');
+            if (normCoeff > 0) {
+                normDmgEl.innerHTML = finalNormDamage.toLocaleString() +
+                    (normFloored ? ' <span style="font-size:12px;color:#ffaa44;font-weight:normal;">⚠️ 保底1点</span>' : '');
+            } else {
+                normDmgEl.textContent = '0';
+            }
+            if (skillCoeff > 0) {
+                skillDmgEl.innerHTML = finalSkillDamage.toLocaleString() +
+                    (skillFloored ? ' <span style="font-size:12px;color:#ffaa44;font-weight:normal;">⚠️ 保底1点</span>' : '');
+            } else {
+                skillDmgEl.textContent = '0';
+            }
+
+            // 治疗量：普攻/技能分别显示
+            document.getElementById('healNormAmount').textContent  = healNorm  > 0 ? healNorm.toLocaleString()  : (normCoeff  > 0 ? '0' : '—');
+            document.getElementById('healSkillAmount').textContent = healSkill > 0 ? healSkill.toLocaleString() : (skillCoeff > 0 ? '0' : '—');
+
+            // 公式详情
+            const atkFormula = `${baseAtk} × (1 + ${finalAtkPct.toFixed(1)}%) = ${finalAtk.toFixed(1)}`;
+            const defFormula = `${baseDef} × (1 + ${finalDefPct.toFixed(1)}%) = ${finalDef.toFixed(1)}`;
+            const suppressFormula = `min(max((${powerRatio.toFixed(7)} - 1) × ${ratioCoeff} + ${ratioBase}, 0), 1) = ${suppressCoeff.toFixed(7)}`;
+
+            let formulaDetail =
+                `<div>攻击: ${atkFormula}</div>` +
+                `<div>防御: ${defFormula}</div>` +
+                `<div>压制系数: ${suppressFormula}</div>`;
+
+            if (normCoeff > 0) {
+                const rawNorm = 1 + (dmgAddNorm - dmgRedNorm) / 100;
+                const clampedNorm = Math.max(k1, Math.min(k2, rawNorm));
+                let normCoeffFormula = `clamp(${k1}, 1+(${dmgAddNorm.toFixed(1)}%-${dmgRedNorm.toFixed(1)}%)=${rawNorm.toFixed(3)}, ${k2}) = ${clampedNorm.toFixed(3)}`;
+                if (isCrit) normCoeffFormula += ` × 暴击(${(2 + critDmg / 100).toFixed(2)}) = ${dmgCoeffNorm.toFixed(3)}`;
+                formulaDetail += `<div>普攻系数: ${normCoeffFormula}</div>`;
+                let normDmgFormula = `普攻: ${baseDamage.toFixed(0)} × ${dmgCoeffNorm.toFixed(3)} × ${normCoeff}`;
+                if (enableSuppress) normDmgFormula += ` × (1+${suppressCoeff.toFixed(7)})`;
+                if (enablePvp) normDmgFormula += ` × ${pvpAtkCoeff.toFixed(3)} / ${pvpDefCoeff.toFixed(3)}`;
+                formulaDetail += `<div>${normDmgFormula} = ${finalNormDamage}</div>`;
+            }
+            if (skillCoeff > 0) {
+                const rawSkill = 1 + (dmgAddSkill - dmgRedSkill) / 100;
+                const clampedSkill = Math.max(k1, Math.min(k2, rawSkill));
+                let skillCoeffFormula = `clamp(${k1}, 1+(${dmgAddSkill.toFixed(1)}%-${dmgRedSkill.toFixed(1)}%)=${rawSkill.toFixed(3)}, ${k2}) = ${clampedSkill.toFixed(3)}`;
+                if (isCrit) skillCoeffFormula += ` × 暴击(${(2 + critDmg / 100).toFixed(2)}) = ${dmgCoeffSkill.toFixed(3)}`;
+                formulaDetail += `<div>技能系数: ${skillCoeffFormula}</div>`;
+                let skillDmgFormula = `技能: ${baseDamage.toFixed(0)} × ${dmgCoeffSkill.toFixed(3)} × ${skillCoeff}`;
+                if (enableSuppress) skillDmgFormula += ` × (1+${suppressCoeff.toFixed(7)})`;
+                if (enablePvp) skillDmgFormula += ` × ${pvpAtkCoeff.toFixed(3)} / ${pvpDefCoeff.toFixed(3)}`;
+                formulaDetail += `<div>${skillDmgFormula} = ${finalSkillDamage}</div>`;
+            }
+            if (healNorm > 0) {
+                formulaDetail += `<div>普攻治疗: ${finalAtk.toFixed(1)} × (1 + ${healAdd}% + ${healReceive}%) × ${normCoeff} = ${healNorm.toLocaleString()}</div>`;
+            }
+            if (healSkill > 0) {
+                formulaDetail += `<div>技能治疗: ${finalAtk.toFixed(1)} × (1 + ${healAdd}% + ${healReceive}%) × ${skillCoeff} = ${healSkill.toLocaleString()}</div>`;
+            }
+
+            document.getElementById('formulaDetail').innerHTML = formulaDetail;
+
+            // 保存所有输入数据到 localStorage
+            saveAllData();
+
+            // 触发数值动画
+            document.querySelectorAll('.result-item .value, .final-damage .value').forEach(el => {
+                el.classList.remove('updated');
+                void el.offsetWidth; // 触发重绘
+                el.classList.add('updated');
+            });
+        }
+
+        // 重置所有数据
+        function resetAll() {
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                if (!input.disabled) {
+                    input.value = 0;
+                    localStorage.removeItem(input.id);
+                }
+            });
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+                localStorage.removeItem(checkbox.id);
+            });
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+                localStorage.removeItem(radio.id);
+            });
+            // 默认选中物理攻击
+            document.querySelector('input[name="skillType"][value="physical"]').checked = true;
+            // 跳过验证重新计算
+            skipValidation = true;
+            calculate();
+            skipValidation = false;
+            // 重置后检查系数是否为0，显示特效
+            checkCoeffWarn();
+            // 显示漂字
+            showToast('页面数据已重置');
+        }
+
+        // 重置指定小标题的数据
+        function resetSection(section) {
+            const sectionMap = {
+                'atkBasic': { ids: ['atkAtk', 'atkDmgAdd', 'critDmg', 'isCrit'], name: '基础属性已重置' },
+                'atkPhy': { ids: ['atkPhyAtkPct', 'atkPhyDmgAdd', 'atkNormDmgAdd', 'atkSkillDmgAdd'], name: '物理攻击已重置' },
+                'atkMag': { ids: ['atkMagAtkPct', 'atkMagDmgAdd', 'atkNormMagDmgAdd', 'atkSkillMagDmgAdd'], name: '魔法攻击已重置' },
+                'heal': { ids: ['healAdd', 'healReceive'], name: '治疗量已重置' },
+                'defBasic': { ids: ['defBaseDef', 'defPhyDef', 'defMagDef', 'defDmgRed'], name: '基础属性已重置' },
+                'defPhy': { ids: ['defPhyDefPct', 'defPhyDefPct2', 'defPhyDmgRed', 'defNormPhyDmgRed', 'defSkillPhyDmgRed'], name: '物理防御已重置' },
+                'defMag': { ids: ['defMagDefPct', 'defMagDefPct2', 'defMagDmgRed', 'defNormMagDmgRed', 'defSkillMagDmgRed'], name: '魔法防御已重置' },
+                'suppress': { ids: ['enableSuppress', 'ratioCoeff', 'ratioBase', 'ratioMax'], name: '战力压制已重置' },
+                'pvp': { ids: ['enablePvp', 'pvpAtkAdd', 'pvpDefRed'], name: 'PVP模块已重置' },
+                'clamp': { ids: ['k1', 'k2'], name: '伤害系数限制已重置', defaults: { k1: 0, k2: 2.0 } }
+            };
+
+            const config = sectionMap[section];
+            if (!config) return;
+
+            config.ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        el.checked = false;
+                    } else {
+                        // 有 defaults 则用 defaults，否则归零
+                        el.value = (config.defaults && config.defaults[id] !== undefined) ? config.defaults[id] : 0;
+                    }
+                    localStorage.removeItem(id);
+                }
+            });
+            
+            // 重新计算
+            skipValidation = true;
+            calculate();
+            skipValidation = false;
+            showToast(config.name);
+        }
+
+        // 检查系数是否为0，显示/隐藏特效
+        function checkCoeffWarn() {
+            const normCoeff = getVal('normCoeff');
+            const skillCoeff = getVal('skillCoeff');
+            document.querySelectorAll('.section-title').forEach(el => {
+                if (el.textContent.trim() === '普攻/技能系数') {
+                    if (normCoeff <= 0 && skillCoeff <= 0) {
+                        el.classList.add('breathe-warn');
+                    } else {
+                        el.classList.remove('breathe-warn');
+                    }
+                }
+            });
+        }
+
+        // 保存所有数据到 localStorage
+        // 生成分享链接
+        function generateShareLink() {
+            try {
+                const data = {};
+                // 收集所有 number 输入框
+                document.querySelectorAll('input[type="number"]').forEach(input => {
+                    if (input.id && input.value !== '' && Number(input.value) !== 0) {
+                        data[input.id] = input.value;
+                    }
+                });
+                // 收集 checkbox
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    if (checkbox.id && checkbox.checked) {
+                        data[checkbox.id] = true;
+                    }
+                });
+                // 收集 radio（技能类型）
+                const checkedRadio = document.querySelector('input[name="skillType"]:checked');
+                if (checkedRadio) {
+                    data['skillType'] = checkedRadio.value;
+                }
+
+                const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+                const url = location.origin + location.pathname + '?d=' + encoded;
+
+                // 复制到剪贴板
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        showToast('🔗 分享链接已复制到剪贴板');
+                    }).catch(() => {
+                        fallbackCopy(url);
+                    });
+                } else {
+                    fallbackCopy(url);
+                }
+            } catch(e) {
+                showToast('❌ 生成失败：' + e.message);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('🔗 分享链接已复制到剪贴板');
+            } catch(e) {
+                showToast('❌ 复制失败，请手动复制地址栏');
+            }
+            document.body.removeChild(ta);
+        }
+
+        function saveAllData() {
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                if (input.value) {
+                    localStorage.setItem(input.id, input.value);
+                }
+            });
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                localStorage.setItem(checkbox.id, checkbox.checked);
+            });
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                if (radio.checked) {
+                    localStorage.setItem(radio.name, radio.value);
+                }
+            });
+        }
+
+        // 从 localStorage 加载数据
+        function loadAllData() {
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                const saved = localStorage.getItem(input.id);
+                if (saved) {
+                    input.value = saved;
+                }
+            });
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                const saved = localStorage.getItem(checkbox.id);
+                if (saved === 'true') {
+                    checkbox.checked = true;
+                }
+            });
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                const saved = localStorage.getItem(radio.name);
+                if (saved === radio.value) {
+                    radio.checked = true;
+                }
+            });
+        }
+
+        // 主题切换
+        function toggleTheme() {
+            const body = document.body;
+            const isLight = body.classList.contains('light-mode');
+            
+            if (isLight) {
+                body.classList.remove('light-mode');
+                document.getElementById('themeIcon').textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.add('light-mode');
+                document.getElementById('themeIcon').textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // 显示漂字
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 170, 0, 0.95);
+                color: #1a1a2e;
+                padding: 15px 30px;
+                border-radius: 10px;
+                font-size: 18px;
+                font-weight: bold;
+                z-index: 10000;
+                animation: toastAnim 1.5s ease forwards;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1500);
+        }
+
+        // 漂字动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes toastAnim {
+                0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                70% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 页面加载时恢复数据
+        loadAllData();
+
+        // 恢复主题设置
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+            document.getElementById('themeIcon').textContent = '☀️';
+        }
+
+        // 初始计算一次（跳过验证）
+        try {
+            skipValidation = true;
+            calculate();
+        } catch(e) {
+            console.error('Initial calculate error:', e);
+        } finally {
+            skipValidation = false;
+        }
+
+        // 给所有输入框添加事件
+        try {
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    // 保存到本地存储
+                    try { localStorage.setItem(e.target.id, e.target.value); } catch(e) {}
+                    // 输入时跳过验证
+                    try { skipValidation = true; calculate(); } catch(e) {} finally { skipValidation = false; }
+                });
+                input.addEventListener('change', (e) => {
+                    try { localStorage.setItem(e.target.id, e.target.value); } catch(e) {}
+                    // 改变时跳过验证
+                    try { skipValidation = true; calculate(); } catch(e) {} finally { skipValidation = false; }
+                });
+
+                // 页面加载时恢复数值
+                try {
+                    const savedValue = localStorage.getItem(input.id);
+                    if (savedValue !== null) {
+                        if (input.type === 'checkbox') {
+                            input.checked = savedValue === 'true';
+                        } else {
+                            input.value = savedValue;
+                        }
+                    }
+                } catch(e) {}
+            });
+            // 恢复数值后计算（跳过验证）
+            try {
+                skipValidation = true;
+                calculate();
+            } catch(e) {} finally {
+                skipValidation = false;
+            }
+        } catch(e) {
+            console.error(e);
+        }
+
+        // 页面加载完成后重新计算一次
+        calculate();
+
+        // 检查是否有分享链接
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareData = urlParams.get('d');
+        if (shareData) {
+            try {
+                const data = JSON.parse(decodeURIComponent(atob(shareData)));
+                Object.keys(data).forEach(key => {
+                    if (key === 'skillType') {
+                        const radio = document.querySelector('input[name="skillType"][value="' + data[key] + '"]');
+                        if (radio) radio.checked = true;
+                    } else {
+                        const el = document.getElementById(key);
+                        if (el) {
+                            if (el.type === 'checkbox') {
+                                el.checked = data[key];
+                            } else {
+                                el.value = data[key];
+                            }
+                        }
+                    }
+                });
+                calculate();
+            } catch (e) {
+                console.error('分享链接解析失败', e);
+            }
+        }
+    // ===== 图片 fallback：读取失败时替换为 emoji =====
+    (function () {
+        // src → fallback emoji/text 映射（不在此表里的图片统一隐藏）
+        const imgFallback = {
+            'fresh.png'                  : { text: '🔄', style: 'font-size:20px;cursor:pointer;' },
+            'zzx.png'                    : { text: '⚔️', style: 'font-size:22px;vertical-align:middle;margin-right:5px;' },
+            'tangsan.png'                : { text: '🧙', style: 'font-size:36px;vertical-align:middle;margin-right:10px;' },
+            'trove_1209.png'             : { text: '⚔️', style: 'font-size:28px;vertical-align:middle;margin-right:8px;' },
+            'equipment_1508.png'         : { text: '🛡️', style: 'font-size:28px;vertical-align:middle;margin-right:8px;' },
+            'skill.jpg'                  : { text: '✨', style: 'font-size:28px;vertical-align:middle;margin-right:8px;' },
+            'result.png'                 : { text: '📊', style: 'font-size:28px;vertical-align:middle;margin-right:8px;' },
+            'panel_dungeon_shibai.png'   : null,   // 仅作背景，404 时直接隐藏
+        };
+
+        function applyFallback(img) {
+            const src = img.getAttribute('src') || '';
+            const filename = src.replace(/.*\//, ''); // 取文件名
+            const fb = imgFallback[filename];
+
+            if (fb === undefined) {
+                // 不在表中的图片：直接隐藏
+                img.style.display = 'none';
+                return;
+            }
+            if (fb === null) {
+                // 仅用作装饰背景，直接隐藏
+                img.style.display = 'none';
+                return;
+            }
+
+            // 用 span 替换 img
+            const span = document.createElement('span');
+            span.textContent = fb.text;
+            span.setAttribute('style', fb.style || '');
+            // 把 img 身上有用的 onclick 也搬过去
+            const onclick = img.getAttribute('onclick');
+            if (onclick) span.setAttribute('onclick', onclick);
+            img.parentNode.replaceChild(span, img);
+        }
+
+        // 给所有 img 注册 onerror
+        document.querySelectorAll('img').forEach(function (img) {
+            // 如果已经加载失败（cached 404），立即处理
+            if (img.complete && img.naturalWidth === 0) {
+                applyFallback(img);
+            } else {
+                img.addEventListener('error', function () {
+                    applyFallback(this);
+                });
+            }
+        });
+    })();
+    </script>
+
+    <!-- 弹窗 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3>⚠️ 提示</h3>
+            <p id="modalMessage">缺少技能系数数值</p>
+            <button class="btn" onclick="closeModal()">确定</button>
+        </div>
+    </div>
+
+    <script>
+        function showModal(message) {
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
+
+
