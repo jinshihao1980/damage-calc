@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>破茧伤害属性计算器 v2</title>
+    <title>破茧伤害属性计算器</title>
     <style>
         * {
             margin: 0;
@@ -552,9 +552,10 @@
         <button class="reset-btn" onclick="resetAll()"><img src="fresh.png" style="height:30px;vertical-align:middle;margin-right:1px;">重置数据</button>
         <button class="reset-btn" onclick="calculate()" style="margin-top:1px;"><img src="zzx.png" style="height:30px;vertical-align:middle;margin-right:5px;">计算伤害</button>
         <button class="reset-btn" onclick="generateShareLink()" style="height:42px;line-height:30px;">🔗 生成分享链接</button>
+        <button class="reset-btn" onclick="toggleCalc()" style="height:42px;line-height:30px;">🧮 计算器</button>
     </div>
     <div style="text-align:center;margin-bottom:20px;margin-top:1px;">
-    <h1 style="background-image:url('panel_dungeon_shibai.png');background-size:cover;background-position:center;padding:1px 50px;border-radius:15px;display:inline-block;margin:0 auto;color:#ffcc00;"><img src="tangsan.png" style="height:50px;vertical-align:middle;margin-right:10px;">破茧伤害属性计算器</h1>
+    <h1 style="background-image:url('panel_dungeon_shibai.png');background-size:cover;background-position:center;padding:1px 50px;border-radius:15px;display:inline-block;margin:0 auto;color:#ffcc00;"><img src="tangsan.png" style="height:50px;vertical-align:middle;margin-right:10px;">破茧伤害属性计算器 <span style="font-size:14px;font-weight:bold;opacity:0.8;">v1.0</span></h1>
     </div>
 
     <div class="container">
@@ -1659,6 +1660,177 @@
         function closeModal() {
             document.getElementById('modalOverlay').classList.remove('show');
         }
+    </script>
+
+    <!-- 内置计算器 -->
+    <div id="calcPanel" style="display:none;position:fixed;top:20px;left:170px;z-index:199;width:260px;background:#2a2520;border:1px solid #ffaa0055;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.6);overflow:hidden;font-family:'Microsoft YaHei',sans-serif;">
+        <!-- 顶栏（拖拽句柄） -->
+        <div id="calcDragBar" style="background:#1a1510;padding:8px 12px 4px;display:flex;justify-content:space-between;align-items:center;cursor:move;user-select:none;">
+            <span style="color:#ffaa00;font-size:13px;font-weight:bold;">计算器</span>
+            <span onclick="toggleCalc()" style="color:#aaa;cursor:pointer;font-size:16px;line-height:1;">✕</span>
+        </div>
+        <!-- 显示屏 -->
+        <div style="padding:6px 10px 4px;">
+            <div id="calcExpr" style="color:#888;font-size:11px;min-height:16px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+            <div id="calcDisplay" style="color:#fff;font-size:26px;text-align:right;min-height:36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:1px;">0</div>
+        </div>
+        <!-- 按键 -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#1a1510;padding:1px;">
+            <!-- 第一行 -->
+            <button class="cbtn cbtn-fn" onclick="calcInput('clear')">C</button>
+            <button class="cbtn cbtn-fn" onclick="calcInput('sign')">±</button>
+            <button class="cbtn cbtn-fn" onclick="calcInput('percent')">%</button>
+            <button class="cbtn cbtn-op" onclick="calcInput('/')">÷</button>
+            <!-- 第二行 -->
+            <button class="cbtn" onclick="calcInput('7')">7</button>
+            <button class="cbtn" onclick="calcInput('8')">8</button>
+            <button class="cbtn" onclick="calcInput('9')">9</button>
+            <button class="cbtn cbtn-op" onclick="calcInput('*')">×</button>
+            <!-- 第三行 -->
+            <button class="cbtn" onclick="calcInput('4')">4</button>
+            <button class="cbtn" onclick="calcInput('5')">5</button>
+            <button class="cbtn" onclick="calcInput('6')">6</button>
+            <button class="cbtn cbtn-op" onclick="calcInput('-')">−</button>
+            <!-- 第四行 -->
+            <button class="cbtn" onclick="calcInput('1')">1</button>
+            <button class="cbtn" onclick="calcInput('2')">2</button>
+            <button class="cbtn" onclick="calcInput('3')">3</button>
+            <button class="cbtn cbtn-op" onclick="calcInput('+')">+</button>
+            <!-- 第五行 -->
+            <button class="cbtn" onclick="calcInput('backspace')" style="font-size:16px;">⌫</button>
+            <button class="cbtn" onclick="calcInput('0')">0</button>
+            <button class="cbtn" onclick="calcInput('.')">.</button>
+            <button class="cbtn cbtn-eq" onclick="calcInput('=')">=</button>
+        </div>
+    </div>
+
+    <style>
+        .cbtn {
+            background:#2a2520; color:#fff; border:none; padding:14px 0;
+            font-size:17px; cursor:pointer; transition:background 0.1s;
+            font-family:'Microsoft YaHei',sans-serif;
+        }
+        .cbtn:hover { background:#3a3530; }
+        .cbtn:active { background:#4a4540; }
+        .cbtn-fn { color:#ffcc66; }
+        .cbtn-op { color:#ffaa00; font-size:20px; }
+        .cbtn-eq { background:#ffaa00 !important; color:#1a1a2e; font-weight:bold; }
+        .cbtn-eq:hover { background:#ffcc00 !important; }
+    </style>
+
+    <script>
+        var _calcDisplay = '0';
+        var _calcExpr = '';
+        var _calcJustCalc = false;
+        var _calcWaitOp = false;
+
+        function toggleCalc() {
+            var p = document.getElementById('calcPanel');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function updateCalcUI() {
+            document.getElementById('calcDisplay').textContent = _calcDisplay;
+            document.getElementById('calcExpr').textContent = _calcExpr;
+        }
+
+        function calcInput(v) {
+            var ops = ['+','-','*','/'];
+            if (v === 'clear') {
+                _calcDisplay = '0'; _calcExpr = ''; _calcJustCalc = false; _calcWaitOp = false;
+            } else if (v === 'backspace') {
+                if (_calcJustCalc || _calcWaitOp) { _calcDisplay = '0'; _calcJustCalc = false; _calcWaitOp = false; }
+                else { _calcDisplay = _calcDisplay.length > 1 ? _calcDisplay.slice(0,-1) : '0'; }
+            } else if (v === 'sign') {
+                if (_calcDisplay !== '0') _calcDisplay = _calcDisplay.startsWith('-') ? _calcDisplay.slice(1) : '-'+_calcDisplay;
+            } else if (v === 'percent') {
+                try { _calcDisplay = String(parseFloat(_calcDisplay)/100); } catch(e){}
+            } else if (ops.indexOf(v) > -1) {
+                // 已有表达式且在等待输入新操作数时，替换运算符而不追加
+                if (_calcWaitOp) {
+                    _calcExpr = _calcExpr.replace(/\s*[\+\-\*\/]\s*$/, '') + ' ' + v;
+                } else {
+                    _calcExpr = (_calcJustCalc ? _calcDisplay : (_calcExpr.replace(/\s*[\+\-\*\/]\s*$/, '') || _calcDisplay)) + ' ' + v;
+                }
+                _calcJustCalc = false; _calcWaitOp = true;
+            } else if (v === '=') {
+                if (_calcExpr) {
+                    try {
+                        var expr = _calcExpr + ' ' + _calcDisplay;
+                        var result = Function('"use strict";return (' + expr + ')')();
+                        var r = String(Math.round(result * 1e10) / 1e10);
+                        _calcExpr = expr + ' =';
+                        _calcDisplay = r;
+                    } catch(e) { _calcDisplay = '错误'; }
+                    _calcJustCalc = true; _calcWaitOp = false;
+                }
+            } else if (v === '.') {
+                if (_calcJustCalc || _calcWaitOp) { _calcDisplay = '0.'; _calcJustCalc = false; _calcWaitOp = false; }
+                else if (_calcDisplay.indexOf('.') === -1) _calcDisplay += '.';
+            } else {
+                if (_calcJustCalc || _calcWaitOp) { _calcDisplay = v; _calcJustCalc = false; _calcWaitOp = false; }
+                else _calcDisplay = _calcDisplay === '0' ? v : _calcDisplay + v;
+            }
+            updateCalcUI();
+        }
+
+        // ── 键盘支持（计算器打开时拦截） ──
+        document.addEventListener('keydown', function(e) {
+            var p = document.getElementById('calcPanel');
+            if (p.style.display === 'none') return;
+            var key = e.key;
+            if ('0123456789'.includes(key)) { e.preventDefault(); calcInput(key); }
+            else if (key === '+') { e.preventDefault(); calcInput('+'); }
+            else if (key === '-') { e.preventDefault(); calcInput('-'); }
+            else if (key === '*') { e.preventDefault(); calcInput('*'); }
+            else if (key === '/') { e.preventDefault(); calcInput('/'); }
+            else if (key === '.') { e.preventDefault(); calcInput('.'); }
+            else if (key === '%') { e.preventDefault(); calcInput('percent'); }
+            else if (key === 'Enter' || key === '=') { e.preventDefault(); calcInput('='); }
+            else if (key === 'Backspace') { e.preventDefault(); calcInput('backspace'); }
+            else if (key === 'Escape') { e.preventDefault(); toggleCalc(); }
+        });
+
+        // ── 点击空白处关闭计算器 ──
+        document.addEventListener('mousedown', function(e) {
+            var p = document.getElementById('calcPanel');
+            if (p.style.display === 'none') return;
+            // 点到计算器面板内部，或点到触发按钮，不关闭
+            if (p.contains(e.target)) return;
+            var btns = document.querySelectorAll('[onclick="toggleCalc()"]');
+            for (var i = 0; i < btns.length; i++) {
+                if (btns[i].contains(e.target)) return;
+            }
+            p.style.display = 'none';
+        });
+
+        // ── 拖拽移动（顶栏拖拽） ──
+        (function() {
+            var bar, panel, dragging = false, ox = 0, oy = 0;
+
+            // DOM 加载后绑定（脚本在 body 末尾，直接获取即可）
+            bar   = document.getElementById('calcDragBar');
+            panel = document.getElementById('calcPanel');
+
+            bar.addEventListener('mousedown', function(e) {
+                if (e.target.textContent.trim() === '✕') return;
+                dragging = true;
+                var rect = panel.getBoundingClientRect();
+                ox = e.clientX - rect.left;
+                oy = e.clientY - rect.top;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                var x = Math.max(0, Math.min(window.innerWidth  - panel.offsetWidth,  e.clientX - ox));
+                var y = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, e.clientY - oy));
+                panel.style.left = x + 'px';
+                panel.style.top  = y + 'px';
+            });
+
+            document.addEventListener('mouseup', function() { dragging = false; });
+        })();
     </script>
 </body>
 </html>
