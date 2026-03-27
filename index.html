@@ -779,7 +779,7 @@
     <div style="text-align:center;margin-bottom:20px;margin-top:1px;">
     <h1 id="mainTitle" style="background:transparent;border-radius:0;padding:12px 28px;display:inline-flex;align-items:center;gap:0;margin:0 auto;line-height:1;">
         <img src="tangsan.png" style="height:50px;vertical-align:middle;margin-right:14px;">
-        <span class="title-sub" style="color:#ffffff !important;font-size:22px;font-weight:900;letter-spacing:3px;font-family:'Microsoft YaHei',sans-serif;text-shadow:none;">破茧属性伤害</span><span class="title-main" style="color:#ffcc00 !important;font-size:33px;font-weight:900;letter-spacing:3px;font-family:'Microsoft YaHei',sans-serif;text-shadow:none;">计算</span>
+        <span class="title-sub" style="color:#ffffff !important;font-size:22px;font-weight:900;letter-spacing:3px;font-family:'Microsoft YaHei',sans-serif;text-shadow:none;">破茧属性伤害</span><span class="title-main" style="color:#ffaa00 !important;font-size:33px;font-weight:900;letter-spacing:3px;font-family:'Microsoft YaHei',sans-serif;text-shadow:none;">计算</span>
     </h1>
     </div>
 
@@ -1004,9 +1004,8 @@
             </div>
 
             <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>🔒 伤害系数限制 (clamp)</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('clamp')">
+                <div class="section-title">
+                    <span>🔒 伤害系数限制 (加成&减免的最大/小值限制)</span>
                 </div>
                 <div class="attr-row">
                     <label>最小系数 k1</label>
@@ -1014,7 +1013,7 @@
                 </div>
                 <div class="attr-row">
                     <label>最大系数 k2</label>
-                    <input type="number" id="k2" value="2.0" step="0.01">
+                    <input type="number" id="k2" value="2" step="0.01">
                 </div>
                 <div class="tips">伤害系数 = clamp(k1, 1 + 加成% - 减免%, k2)</div>
             </div>
@@ -1775,8 +1774,9 @@
 
         // 重置所有数据
         function resetAll() {
+            const skipIds = new Set(['k1', 'k2']);
             document.querySelectorAll('input[type="number"]').forEach(input => {
-                if (!input.disabled) {
+                if (!input.disabled && !skipIds.has(input.id)) {
                     input.value = 0;
                     localStorage.removeItem(input.id);
                 }
@@ -1811,9 +1811,8 @@
                 'defBasic': { ids: ['defBaseDef', 'defPhyDef', 'defMagDef', 'defDmgRed'], name: '基础属性已重置' },
                 'defPhy': { ids: ['defPhyDefPct', 'defPhyDefPct2', 'defPhyDmgRed', 'defNormPhyDmgRed', 'defSkillPhyDmgRed'], name: '物理防御已重置' },
                 'defMag': { ids: ['defMagDefPct', 'defMagDefPct2', 'defMagDmgRed', 'defNormMagDmgRed', 'defSkillMagDmgRed'], name: '魔法防御已重置' },
-                'suppress': { ids: ['enableSuppress', 'ratioCoeff', 'ratioBase', 'ratioMax'], name: '战力压制已重置', defaults: { ratioMax: 1 } },
-                'pvp': { ids: ['enablePvp', 'pvpAtkAdd', 'pvpDefRed'], name: 'PVP模块已重置' },
-                'clamp': { ids: ['k1', 'k2'], name: '伤害系数限制已重置', defaults: { k1: 0, k2: 2.0 } }
+                'suppress': { ids: ['enableSuppress', 'atkTeamPower', 'defTeamPower', 'ratioCoeff', 'ratioBase', 'ratioMax'], name: '战力压制已重置', defaults: { ratioMax: 1 } },
+                'pvp': { ids: ['enablePvp', 'pvpAtkAdd', 'pvpDefRed'], name: 'PVP模块已重置' }
             };
 
             const config = sectionMap[section];
@@ -1929,7 +1928,7 @@
 
         // 从 localStorage 加载数据
         // 固定默认值字段：localStorage 为空或 0 时使用此默认值
-        var _fieldDefaults = { ratioMax: 1 };
+        var _fieldDefaults = { ratioMax: 1, k2: 2 };
         function loadAllData() {
             document.querySelectorAll('input[type="number"]').forEach(input => {
                 const saved = localStorage.getItem(input.id);
