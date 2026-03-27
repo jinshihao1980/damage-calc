@@ -1048,10 +1048,9 @@
                 </div>
                 <div class="attr-row">
                     <label>ratio_max系数</label>
-                    <input type="number" id="ratioMax" value="1" step="0.1" disabled>
-                    <span class="tips" style="margin-left:10px;">(默认1)</span>
+                    <input type="number" id="ratioMax" value="1" step="0.1">
                 </div>
-                <div class="tips">压制系数 = min(max((攻击/受击-1)×ratio + ratio_base, 0), 1)</div>
+                <div class="tips">压制系数 = clamp((攻击/受击-1)×ratio + ratio_base, 0, ratio_max)</div>
             </div>
 
             <div class="section">
@@ -1319,7 +1318,7 @@
             const defTeamPower = getVal('defTeamPower');
             const ratioCoeff = getVal('ratioCoeff');
             const ratioBase = getVal('ratioBase');
-            const ratioMax = 1; // 固定为1
+            const ratioMax = getVal('ratioMax');
 
             // ===== 计算攻击方 =====
             let finalAtkPct = 0;
@@ -1379,7 +1378,7 @@
             }
 
             // ===== 战力压制计算 =====
-            // 压制系数 = min(max((攻击/受击 - 1) × ratio + ratio_base, 0), 1)
+            // 压制系数 = (攻击/受击 - 1) × ratio + ratio_base
             let powerRatio = defTeamPower > 0 ? atkTeamPower / defTeamPower : 1;
             let suppressCoeff;
 
@@ -1812,7 +1811,7 @@
                 'defBasic': { ids: ['defBaseDef', 'defPhyDef', 'defMagDef', 'defDmgRed'], name: '基础属性已重置' },
                 'defPhy': { ids: ['defPhyDefPct', 'defPhyDefPct2', 'defPhyDmgRed', 'defNormPhyDmgRed', 'defSkillPhyDmgRed'], name: '物理防御已重置' },
                 'defMag': { ids: ['defMagDefPct', 'defMagDefPct2', 'defMagDmgRed', 'defNormMagDmgRed', 'defSkillMagDmgRed'], name: '魔法防御已重置' },
-                'suppress': { ids: ['enableSuppress', 'ratioCoeff', 'ratioBase', 'ratioMax'], name: '战力压制已重置' },
+                'suppress': { ids: ['enableSuppress', 'ratioCoeff', 'ratioBase', 'ratioMax'], name: '战力压制已重置', defaults: { ratioMax: 1 } },
                 'pvp': { ids: ['enablePvp', 'pvpAtkAdd', 'pvpDefRed'], name: 'PVP模块已重置' },
                 'clamp': { ids: ['k1', 'k2'], name: '伤害系数限制已重置', defaults: { k1: 0, k2: 2.0 } }
             };
@@ -1929,11 +1928,18 @@
         }
 
         // 从 localStorage 加载数据
+        // 固定默认值字段：localStorage 为空或 0 时使用此默认值
+        var _fieldDefaults = { ratioMax: 1 };
         function loadAllData() {
             document.querySelectorAll('input[type="number"]').forEach(input => {
                 const saved = localStorage.getItem(input.id);
-                if (saved) {
+                if (saved !== null && saved !== '') {
                     input.value = saved;
+                }
+                // 有固定默认值且当前值为 0 或空时，强制恢复默认并清除 localStorage 错误记录
+                if (_fieldDefaults[input.id] !== undefined && (input.value === '0' || input.value === '')) {
+                    input.value = _fieldDefaults[input.id];
+                    localStorage.removeItem(input.id);
                 }
             });
             document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
