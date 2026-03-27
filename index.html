@@ -20,7 +20,66 @@
             min-height: 100vh;
             padding: 20px;
             color: #fff;
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.4s, color 0.4s;
+        }
+
+        /* ===== F. 主题切换全元素丝滑过渡 ===== */
+        *, *::before, *::after {
+            transition: background-color 0.35s, border-color 0.35s, color 0.35s, box-shadow 0.35s;
+        }
+        /* 排除动画类元素，避免 transition 冲突 */
+        .breathe-warn, .btn-calculate, .value.updated, .final-damage .value.updated,
+        .attr-row:has(input:focus) {
+            transition: none !important;
+        }
+
+        /* ===== B. 面板入场动画 ===== */
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .panel, .result-panel {
+            animation: panelSlideIn 0.5s ease both;
+        }
+        .container > :nth-child(1) { animation-delay: 0.05s; }
+        .container > :nth-child(2) { animation-delay: 0.15s; }
+        .container > :nth-child(3) { animation-delay: 0.25s; }
+        .container > :nth-child(4) { animation-delay: 0.35s; }
+
+        /* ===== D. 扣血量/治疗量框体 hover 边框 ===== */
+        .final-damage {
+            border: 1px solid transparent;
+            transition: border-color 0.3s, background 0.3s !important;
+        }
+        .final-damage:hover {
+            border-color: rgba(255, 170, 0, 0.8);
+        }
+
+        /* ===== E. 按钮涟漪效果 ===== */
+        .reset-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(0);
+            animation: rippleAnim 0.55s linear;
+            pointer-events: none;
+        }
+        @keyframes rippleAnim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* ===== G. 计算结果区域闪光 ===== */
+        @keyframes resultFlash {
+            0%   { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+            30%  { box-shadow: 0 0 30px rgba(255,204,0,0.6), 0 0 60px rgba(255,170,0,0.3); }
+            100% { box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 10px rgba(255,170,0,0.15); }
+        }
+        .result-panel.flash {
+            animation: resultFlash 0.6s ease forwards;
         }
 
         body.light-mode {
@@ -31,6 +90,19 @@
         body.light-mode h1 {
             color: #00aa66;
             text-shadow: 0 0 10px rgba(0, 170, 102, 0.3);
+        }
+        body.light-mode #mainTitle {
+            background: transparent !important;
+            border-radius: 0;
+            padding: 12px 28px !important;
+        }
+        body.light-mode #mainTitle .title-sub {
+            color: #111111 !important;
+            text-shadow: none !important;
+        }
+        body.light-mode #mainTitle .title-main {
+            color: #111111 !important;
+            text-shadow: none !important;
         }
 
         body.light-mode .panel {
@@ -77,8 +149,12 @@
             color: #16160e;
         }
 
+        body.light-mode .result-item .label {
+            color: #383c3c;
+        }
+
         body.light-mode .result-item .value {
-            color: #16160e;
+            color: #b8860b;
         }
 
         body.light-mode .final-damage {
@@ -87,17 +163,21 @@
         }
 
         body.light-mode .final-damage .label {
-            color: #16160e !important;
+            color: #383c3c !important;
         }
 
         body.light-mode .final-damage .value {
-            color: #ffaa00 !important;
+            color: #383c3c !important;
             text-shadow: none !important;
         }
 
         body.light-mode .formula-detail {
             background: rgba(0, 0, 0, 0.05);
-            color: #333;
+            color: #383c3c;
+        }
+
+        body.light-mode .formula {
+            color: #383c3c;
         }
 
         body.light-mode .tips {
@@ -181,11 +261,43 @@
             border-radius: 8px;
         }
 
+        /* ===== A. 输入框聚焦整行高亮呼吸特效 ===== */
+        @keyframes rowBreath {
+            0%, 100% {
+                background: rgba(255, 170, 0, 0.06);
+                box-shadow: 0 0 6px rgba(255, 170, 0, 0.08);
+            }
+            50% {
+                background: rgba(255, 170, 0, 0.18);
+                box-shadow: 0 0 16px rgba(255, 170, 0, 0.30);
+            }
+        }
+        @keyframes rowBreathLight {
+            0%, 100% {
+                background: rgba(200, 110, 0, 0.10);
+                box-shadow: 0 0 0 1.5px rgba(200, 110, 0, 0.25),
+                            0 0 8px rgba(200, 110, 0, 0.12);
+            }
+            50% {
+                background: rgba(200, 110, 0, 0.22);
+                box-shadow: 0 0 0 1.5px rgba(200, 110, 0, 0.70),
+                            0 0 16px rgba(200, 110, 0, 0.28);
+            }
+        }
         .attr-row {
             display: flex;
             align-items: center;
             margin-bottom: 8px;
             gap: 10px;
+            border-radius: 6px;
+            padding: 2px 4px;
+            transition: background 0.25s, box-shadow 0.25s;
+        }
+        .attr-row:has(input:focus) {
+            animation: rowBreath 1.4s ease-in-out infinite;
+        }
+        body.light-mode .attr-row:has(input:focus) {
+            animation: rowBreathLight 1.4s ease-in-out infinite;
         }
 
         .attr-row label {
@@ -362,7 +474,7 @@
         }
 
         .result-item .value {
-            color: #faf0e6;
+            color: #ffcc00;
             font-weight: bold;
             transition: transform 0.3s ease;
         }
@@ -400,7 +512,7 @@
         }
 
         .result-item .value.damage {
-            color: #ff4444;
+            color: #ffcc00;
             font-size: 16px;
         }
 
@@ -420,6 +532,7 @@
             padding: 8px 15px;
             background: linear-gradient(135deg, rgba(255, 68, 68, 0.2), rgba(255, 136, 68, 0.2));
             border-radius: 10px;
+            cursor: help;
             margin-top: 15px;
         }
 
@@ -429,11 +542,11 @@
         }
 
         .final-damage .value {
-            color: #ff4444;
+            color: #ffffff;
             font-size: 28px;
             font-weight: bold;
             margin-top: 8px;
-            text-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
             transition: transform 0.3s ease;
         }
 
@@ -457,6 +570,83 @@
         .crit {
             color: #ff00ff !important;
         }
+
+        /* 扣血量 tooltip */
+        .dmg-tooltip-wrap {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .dmg-tip {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            background: rgba(20, 14, 8, 0.97);
+            border: 1px solid #ffaa0088;
+            border-radius: 10px;
+            padding: 12px 16px;
+            min-width: 300px;
+            max-width: 420px;
+            font-size: 12px;
+            line-height: 1.9;
+            color: #ffd080;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.8);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .dmg-tip .tip-title {
+            color: #ffcc00;
+            font-size: 13px;
+            font-weight: bold;
+            border-bottom: 1px solid #ffaa0055;
+            padding-bottom: 5px;
+            margin-bottom: 6px;
+        }
+        .dmg-tip .tip-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            color: #ddc088;
+        }
+        .dmg-tip .tip-row .tip-label {
+            color: #aaa;
+            flex-shrink: 0;
+        }
+        .dmg-tip .tip-row .tip-val {
+            color: #ffe0a0;
+            text-align: right;
+        }
+        .dmg-tip .tip-final {
+            margin-top: 6px;
+            padding-top: 5px;
+            border-top: 1px solid #ffaa0055;
+            color: #ff8888;
+            font-weight: bold;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .dmg-tip .tip-formula {
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px dashed #ffaa0033;
+            color: #888;
+            font-family: monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+        }
+        body.light-mode .dmg-tip {
+            background: rgba(255,248,230,0.98);
+            border-color: #cc8800aa;
+            color: #7a4a00;
+        }
+        body.light-mode .dmg-tip .tip-title { color: #cc6600; border-color: #cc880044; }
+        body.light-mode .dmg-tip .tip-row { color: #7a5500; }
+        body.light-mode .dmg-tip .tip-row .tip-label { color: #999; }
+        body.light-mode .dmg-tip .tip-row .tip-val { color: #5a3a00; }
+        body.light-mode .dmg-tip .tip-final { color: #cc2200; border-color: #cc880044; }
+        body.light-mode .dmg-tip .tip-formula { color: #bbb; }
 
         .tips {
             font-size: 12px;
@@ -503,6 +693,35 @@
             margin-bottom: 20px;
         }
 
+        .share-tip {
+            display: none;
+            position: absolute;
+            left: calc(100% + 10px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(30,20,10,0.92);
+            color: #ffcc88;
+            font-size: 12px;
+            white-space: nowrap;
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid #ffaa0055;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .share-tip::before {
+            content: '';
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: rgba(30,20,10,0.92);
+        }
+        div:hover > .share-tip {
+            display: block;
+        }
+
         .reset-btn {
             background: #ffaa00;
             color: #1a1a2e;
@@ -545,23 +764,29 @@
     </style>
 </head>
 <body>
-    <div style="position:fixed; top:20px; right:20px; z-index:100;">
+    <div style="position:fixed; top:20px; right:20px; z-index:100; display:none;">
         <button class="reset-btn" onclick="toggleTheme()" style="background:#ffaa00;"><span id="themeIcon">🌙</span> 主题</button>
     </div>
     <div style="position:fixed; top:20px; left:20px; display:flex; flex-direction:column; gap:20px; z-index:100;">
         <button class="reset-btn" onclick="resetAll()"><img src="fresh.png" style="height:30px;vertical-align:middle;margin-right:1px;">重置数据</button>
         <button class="reset-btn" onclick="calculate()" style="margin-top:1px;"><img src="zzx.png" style="height:30px;vertical-align:middle;margin-right:5px;">计算伤害</button>
-        <button class="reset-btn" onclick="generateShareLink()" style="height:42px;line-height:30px;">🔗 生成分享链接</button>
+        <div style="position:relative;display:inline-block;">
+            <button class="reset-btn" onclick="generateShareLink()" style="height:42px;line-height:30px;">🔗 生成分享链接</button>
+            <div class="share-tip">将当前页面数据生成链接并复制</div>
+        </div>
         <button class="reset-btn" onclick="toggleCalc()" style="height:42px;line-height:30px;">🧮 计算器</button>
     </div>
     <div style="text-align:center;margin-bottom:20px;margin-top:1px;">
-    <h1 style="background-image:url('panel_dungeon_shibai.png');background-size:cover;background-position:center;padding:1px 50px;border-radius:15px;display:inline-block;margin:0 auto;color:#ffcc00;"><img src="tangsan.png" style="height:50px;vertical-align:middle;margin-right:10px;">破茧伤害属性计算器 <span style="font-size:14px;font-weight:bold;opacity:0.8;">v1.0</span></h1>
+    <h1 id="mainTitle" style="background:transparent;border-radius:0;padding:12px 28px;display:inline-flex;align-items:center;gap:0;margin:0 auto;line-height:1;">
+        <img src="tangsan.png" style="height:50px;vertical-align:middle;margin-right:14px;">
+        <span class="title-sub" style="color:#ffffff !important;font-size:22px;font-weight:900;letter-spacing:3px;font-family:'Microsoft YaHei',sans-serif;text-shadow:none;">破茧属性伤害</span><span class="title-main" style="color:#ffcc00 !important;font-size:33px;font-weight:900;letter-spacing:3px;font-family:'Microsoft YaHei',sans-serif;text-shadow:none;">计算</span>
+    </h1>
     </div>
 
     <div class="container">
         <!-- 攻击方面板 -->
         <div class="panel">
-            <h2><img src="trove_1209.png" style="height:40px;vertical-align:middle;margin-right:8px;">攻方（魂师）</h2>
+            <h2><img src="trove_1209.png" style="height:35px;vertical-align:middle;margin-right:8px;">攻方（魂师）</h2>
 
             <div class="section">
                 <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
@@ -575,6 +800,11 @@
                 <div class="attr-row">
                     <label>伤害加成 %</label>
                     <input type="number" id="atkDmgAdd" value="0">
+                    <span class="percent">%</span>
+                </div>
+                <div class="attr-row">
+                    <label>最终攻击 %</label>
+                    <input type="number" id="atkAtkPct" value="0">
                     <span class="percent">%</span>
                 </div>
                 <div class="attr-row">
@@ -594,11 +824,6 @@
                 <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>物理攻击</span>
                     <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkPhy')">
-                </div>
-                <div class="attr-row">
-                    <label>最终攻击 %</label>
-                    <input type="number" id="atkPhyAtkPct" value="0">
-                    <span class="percent">%</span>
                 </div>
                 <div class="attr-row">
                     <label>物伤加成 %</label>
@@ -621,11 +846,6 @@
                 <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>魔法攻击</span>
                     <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkMag')">
-                </div>
-                <div class="attr-row">
-                    <label>最终攻击 %</label>
-                    <input type="number" id="atkMagAtkPct" value="0">
-                    <span class="percent">%</span>
                 </div>
                 <div class="attr-row">
                     <label>法伤加成 %</label>
@@ -665,7 +885,7 @@
 
         <!-- 防御方面板 -->
         <div class="panel">
-            <h2><img src="equipment_1508.png" style="height:40px;vertical-align:middle;margin-right:8px;">守方（对手）</h2>
+            <h2><img src="equipment_1508.png" style="height:35px;vertical-align:middle;margin-right:8px;">守方（对手）</h2>
 
             <div class="section">
                 <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
@@ -758,7 +978,7 @@
 
         <!-- 技能设置 -->
         <div class="panel">
-            <h2><img src="skill.jpg" style="height:40px;vertical-align:middle;margin-right:8px;">技能设置</h2>
+            <h2><img src="skill.jpg" style="height:30px;vertical-align:middle;margin-right:8px;">技能设置</h2>
 
             <div class="section">
                 <div class="section-title">技能类型</div>
@@ -861,7 +1081,7 @@
 
         <!-- 结果面板 (第4列) -->
         <div class="result-panel">
-            <h2><img src="result.png" style="height:40px;vertical-align:middle;margin-right:8px;">计算结果</h2>
+            <h2><span style="font-size:20px;vertical-align:middle;margin-right:8px;">📈</span>计算结果</h2>
 
             <div class="result-section">
                 <h3>攻击方计算</h3>
@@ -925,22 +1145,42 @@
 
             <div class="final-damage">
                 <div class="label" style="color:#faf0e6;">⚔️ 普攻扣血量</div>
-                <div class="value" id="normDamage" style="color:#faf0e6;">0</div>
+                <div class="dmg-tooltip-wrap">
+                    <div class="value" id="normDamage">0</div>
+                    <div class="dmg-tip" id="normDamageTip">
+                        <div class="tip-title">📋 普攻扣血量计算过程</div>
+                    </div>
+                </div>
             </div>
 
             <div class="final-damage" style="margin-top:10px;">
                 <div class="label" style="color:#faf0e6;">⚔️ 技能扣血量</div>
-                <div class="value" id="skillDamage" style="color:#faf0e6;">0</div>
+                <div class="dmg-tooltip-wrap">
+                    <div class="value" id="skillDamage">0</div>
+                    <div class="dmg-tip" id="skillDamageTip">
+                        <div class="tip-title">📋 技能扣血量计算过程</div>
+                    </div>
+                </div>
             </div>
 
             <div class="final-damage" style="margin-top:10px; background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,200,100,0.15));">
                 <div class="label" style="color:#faf0e6;">💚 普攻治疗量</div>
-                <div class="value" id="healNormAmount" style="color:#faf0e6;">0</div>
+                <div class="dmg-tooltip-wrap">
+                    <div class="value" id="healNormAmount">0</div>
+                    <div class="dmg-tip" id="healNormTip">
+                        <div class="tip-title">📋 普攻治疗量计算过程</div>
+                    </div>
+                </div>
             </div>
 
             <div class="final-damage" style="margin-top:10px; background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,200,100,0.15));">
                 <div class="label" style="color:#faf0e6;">💚 技能治疗量</div>
-                <div class="value" id="healSkillAmount" style="color:#faf0e6;">0</div>
+                <div class="dmg-tooltip-wrap">
+                    <div class="value" id="healSkillAmount">0</div>
+                    <div class="dmg-tip" id="healSkillTip">
+                        <div class="tip-title">📋 技能治疗量计算过程</div>
+                    </div>
+                </div>
             </div>
 
             <div class="formula">
@@ -961,6 +1201,48 @@
         function getValById(id) {
             const el = document.getElementById(id);
             return el ? (parseFloat(el.value) || 0) : 0;
+        }
+
+        // ===== 数值滚动计数 =====
+        function animateCount(el, targetVal, duration) {
+            // 只对纯数字（无特殊标注）做滚动，否则直接设值
+            if (typeof targetVal !== 'number' || isNaN(targetVal)) return;
+            // 找到或创建专用文本节点（第一个子节点），避免覆盖 .dmg-tip 子元素
+            var textNode = null;
+            for (var i = 0; i < el.childNodes.length; i++) {
+                if (el.childNodes[i].nodeType === Node.TEXT_NODE) {
+                    textNode = el.childNodes[i];
+                    break;
+                }
+            }
+            if (!textNode) {
+                textNode = document.createTextNode('');
+                el.insertBefore(textNode, el.firstChild);
+            }
+            var start = parseFloat(el.dataset.lastVal) || 0;
+            el.dataset.lastVal = targetVal;
+            // 即使 start === targetVal，也要确保文字节点显示正确
+            if (start === targetVal) {
+                textNode.nodeValue = Number.isInteger(targetVal)
+                    ? targetVal.toLocaleString()
+                    : targetVal.toFixed(3);
+                return;
+            }
+            var startTime = null;
+            var isInt = Number.isInteger(targetVal);
+            function step(ts) {
+                if (!startTime) startTime = ts;
+                var progress = Math.min((ts - startTime) / duration, 1);
+                // ease-out cubic
+                var ease = 1 - Math.pow(1 - progress, 3);
+                var cur = start + (targetVal - start) * ease;
+                textNode.nodeValue = isInt
+                    ? Math.round(cur).toLocaleString()
+                    : cur.toFixed(3);
+                if (progress < 1) requestAnimationFrame(step);
+                else textNode.nodeValue = isInt ? targetVal.toLocaleString() : targetVal.toFixed(3);
+            }
+            requestAnimationFrame(step);
         }
 
         // 计算
@@ -986,15 +1268,16 @@
             // ===== 攻击方 =====
             const baseAtk = getVal('atkAtk');
             const atkDmgAdd = getVal('atkDmgAdd'); // 基础伤害加成%
+            const atkAtkPct = getVal('atkAtkPct'); // 最终攻击%（物理/魔法共用）
 
             // 物理攻击相关
-            const atkPhyAtkPct = getVal('atkPhyAtkPct'); // 物理最终攻击%
+            const atkPhyAtkPct = atkAtkPct; // 兼容旧逻辑，统一用共用值
             const atkPhyDmgAdd = getVal('atkPhyDmgAdd'); // 物理伤害加成%
             const atkNormDmgAdd = getVal('atkNormDmgAdd'); // 普通物理伤害加成%
             const atkSkillDmgAdd = getVal('atkSkillDmgAdd'); // 技能物理伤害加成%
 
             // 魔法攻击相关
-            const atkMagAtkPct = getVal('atkMagAtkPct'); // 魔法最终攻击%
+            const atkMagAtkPct = atkAtkPct; // 兼容旧逻辑，统一用共用值
             const atkMagDmgAdd = getVal('atkMagDmgAdd'); // 魔法伤害加成%
             const atkNormMagDmgAdd = getVal('atkNormMagDmgAdd'); // 普通魔法伤害加成%
             const atkSkillMagDmgAdd = getVal('atkSkillMagDmgAdd'); // 技能魔法伤害加成%
@@ -1187,42 +1470,171 @@
             
             document.getElementById('resBaseAtk').textContent = baseAtk.toLocaleString();
             document.getElementById('resFinalAtkPct').textContent = finalAtkPct.toFixed(1) + '%';
-            document.getElementById('resFinalAtk').textContent = finalAtk.toFixed(1);
+            animateCount(document.getElementById('resFinalAtk'), finalAtk, 400);
 
             document.getElementById('resBaseDef').textContent = baseDef.toLocaleString();
             document.getElementById('resFinalDefPct').textContent = finalDefPct.toFixed(1) + '%';
-            document.getElementById('resFinalDef').textContent = finalDef.toFixed(1);
+            animateCount(document.getElementById('resFinalDef'), finalDef, 400);
 
             // 结果面板：优先显示技能系数，无技能系数时显示普攻系数
             const displayDmgAdd = skillCoeff > 0 ? dmgAddSkill : dmgAddNorm;
             const displayDmgRed = skillCoeff > 0 ? dmgRedSkill : dmgRedNorm;
             document.getElementById('resDmgAdd').textContent = displayDmgAdd.toFixed(1) + '%';
             document.getElementById('resDmgRed').textContent = displayDmgRed.toFixed(1) + '%';
-            document.getElementById('resDmgCoeff').textContent = dmgCoeff.toFixed(3);
+            animateCount(document.getElementById('resDmgCoeff'), dmgCoeff, 400);
 
             // 战力压制显示
             document.getElementById('resPowerRatio').textContent = powerRatio.toFixed(7);
             document.getElementById('resSuppressCoeff').textContent = suppressCoeff.toFixed(7);
 
-            // 普攻/技能伤害：触发保底时加标注
+            // 普攻/技能伤害：触发保底时加标注（保底时不做滚动直接赋值）
             const normDmgEl  = document.getElementById('normDamage');
             const skillDmgEl = document.getElementById('skillDamage');
             if (normCoeff > 0) {
-                normDmgEl.innerHTML = finalNormDamage.toLocaleString() +
-                    (normFloored ? ' <span style="font-size:12px;color:#ffaa44;font-weight:normal;">⚠️ 保底1点</span>' : '');
+                if (normFloored) {
+                    // 保底时：清掉旧文本节点，写入保底标注
+                    Array.from(normDmgEl.childNodes).forEach(function(n){
+                        if (n.nodeType === Node.TEXT_NODE) n.nodeValue = '';
+                    });
+                    // 用 data 属性存值，保底 span 插入或更新
+                    var floorSpan = normDmgEl.querySelector('.floor-note');
+                    if (!floorSpan) {
+                        floorSpan = document.createElement('span');
+                        floorSpan.className = 'floor-note';
+                        floorSpan.style.cssText = 'font-size:12px;color:#ffaa44;font-weight:normal;';
+                        normDmgEl.appendChild(floorSpan);
+                    }
+                    // 文字节点放数值
+                    var tn = null;
+                    for (var i = 0; i < normDmgEl.childNodes.length; i++) {
+                        if (normDmgEl.childNodes[i].nodeType === Node.TEXT_NODE) { tn = normDmgEl.childNodes[i]; break; }
+                    }
+                    if (!tn) { tn = document.createTextNode(''); normDmgEl.insertBefore(tn, normDmgEl.firstChild); }
+                    tn.nodeValue = finalNormDamage.toLocaleString() + ' ';
+                    floorSpan.textContent = '⚠️ 保底1点';
+                } else {
+                    // 移除保底 span（如有），不清 dmg-tip
+                    var fs = normDmgEl.querySelector('.floor-note');
+                    if (fs) fs.remove();
+                    animateCount(normDmgEl, finalNormDamage, 500);
+                }
             } else {
-                normDmgEl.textContent = '0';
+                var fs2 = normDmgEl.querySelector('.floor-note');
+                if (fs2) fs2.remove();
+                var tn2 = null;
+                for (var i = 0; i < normDmgEl.childNodes.length; i++) {
+                    if (normDmgEl.childNodes[i].nodeType === Node.TEXT_NODE) { tn2 = normDmgEl.childNodes[i]; break; }
+                }
+                if (tn2) tn2.nodeValue = '0'; else normDmgEl.insertBefore(document.createTextNode('0'), normDmgEl.firstChild);
+                normDmgEl.dataset.lastVal = 0;
             }
             if (skillCoeff > 0) {
-                skillDmgEl.innerHTML = finalSkillDamage.toLocaleString() +
-                    (skillFloored ? ' <span style="font-size:12px;color:#ffaa44;font-weight:normal;">⚠️ 保底1点</span>' : '');
+                if (skillFloored) {
+                    Array.from(skillDmgEl.childNodes).forEach(function(n){
+                        if (n.nodeType === Node.TEXT_NODE) n.nodeValue = '';
+                    });
+                    var floorSpan2 = skillDmgEl.querySelector('.floor-note');
+                    if (!floorSpan2) {
+                        floorSpan2 = document.createElement('span');
+                        floorSpan2.className = 'floor-note';
+                        floorSpan2.style.cssText = 'font-size:12px;color:#ffaa44;font-weight:normal;';
+                        skillDmgEl.appendChild(floorSpan2);
+                    }
+                    var tn3 = null;
+                    for (var i = 0; i < skillDmgEl.childNodes.length; i++) {
+                        if (skillDmgEl.childNodes[i].nodeType === Node.TEXT_NODE) { tn3 = skillDmgEl.childNodes[i]; break; }
+                    }
+                    if (!tn3) { tn3 = document.createTextNode(''); skillDmgEl.insertBefore(tn3, skillDmgEl.firstChild); }
+                    tn3.nodeValue = finalSkillDamage.toLocaleString() + ' ';
+                    floorSpan2.textContent = '⚠️ 保底1点';
+                } else {
+                    var fs3 = skillDmgEl.querySelector('.floor-note');
+                    if (fs3) fs3.remove();
+                    animateCount(skillDmgEl, finalSkillDamage, 500);
+                }
             } else {
-                skillDmgEl.textContent = '0';
+                var fs4 = skillDmgEl.querySelector('.floor-note');
+                if (fs4) fs4.remove();
+                var tn4 = null;
+                for (var i = 0; i < skillDmgEl.childNodes.length; i++) {
+                    if (skillDmgEl.childNodes[i].nodeType === Node.TEXT_NODE) { tn4 = skillDmgEl.childNodes[i]; break; }
+                }
+                if (tn4) tn4.nodeValue = '0'; else skillDmgEl.insertBefore(document.createTextNode('0'), skillDmgEl.firstChild);
+                skillDmgEl.dataset.lastVal = 0;
             }
 
-            // 治疗量：普攻/技能分别显示
-            document.getElementById('healNormAmount').textContent  = healNorm  > 0 ? healNorm.toLocaleString()  : (normCoeff  > 0 ? '0' : '—');
-            document.getElementById('healSkillAmount').textContent = healSkill > 0 ? healSkill.toLocaleString() : (skillCoeff > 0 ? '0' : '—');
+            // 治疗量：普攻/技能分别显示（用滚动计数）
+            const healNormEl  = document.getElementById('healNormAmount');
+            const healSkillEl = document.getElementById('healSkillAmount');
+            if (healNorm > 0) {
+                animateCount(healNormEl, healNorm, 500);
+            } else {
+                var htn1 = null;
+                for (var i = 0; i < healNormEl.childNodes.length; i++) {
+                    if (healNormEl.childNodes[i].nodeType === Node.TEXT_NODE) { htn1 = healNormEl.childNodes[i]; break; }
+                }
+                var healNormText = normCoeff > 0 ? '0' : '—';
+                if (htn1) htn1.nodeValue = healNormText;
+                else healNormEl.insertBefore(document.createTextNode(healNormText), healNormEl.firstChild);
+                healNormEl.dataset.lastVal = 0;
+            }
+            if (healSkill > 0) {
+                animateCount(healSkillEl, healSkill, 500);
+            } else {
+                var htn2 = null;
+                for (var i = 0; i < healSkillEl.childNodes.length; i++) {
+                    if (healSkillEl.childNodes[i].nodeType === Node.TEXT_NODE) { htn2 = healSkillEl.childNodes[i]; break; }
+                }
+                var healSkillText = skillCoeff > 0 ? '0' : '—';
+                if (htn2) htn2.nodeValue = healSkillText;
+                else healSkillEl.insertBefore(document.createTextNode(healSkillText), healSkillEl.firstChild);
+                healSkillEl.dataset.lastVal = 0;
+            }
+
+            // ===== G. 结果面板闪光 =====
+            (function() {
+                var rp = document.querySelector('.result-panel');
+                if (!rp) return;
+                rp.classList.remove('flash');
+                void rp.offsetWidth; // 强制重排，重置动画
+                rp.classList.add('flash');
+                // 不移除 flash class，让 forwards 保持末态微光
+            })();
+
+            // ===== 构建治疗量 tooltip =====
+            function buildHealTip(type) {
+                const coeff    = type === 'norm' ? normCoeff  : skillCoeff;
+                const healVal  = type === 'norm' ? healNorm   : healSkill;
+                const label    = type === 'norm' ? '普攻' : '技能';
+
+                if (coeff <= 0) return '<div class="tip-title">📋 ' + label + '治疗量计算过程</div><div style="color:#888;padding:6px 0;">系数为 0，未参与计算</div>';
+
+                let rows = '';
+                function row(lbl, val) {
+                    rows += '<div class="tip-row"><span class="tip-label">' + lbl + '</span><span class="tip-val">' + val + '</span></div>';
+                }
+
+                row('基础攻击', baseAtk.toLocaleString());
+                row('最终攻击 %', finalAtkPct.toFixed(1) + '%');
+                row('最终攻击值', finalAtk.toFixed(1) + '  (' + baseAtk + ' × (1 + ' + finalAtkPct.toFixed(1) + '%) )');
+                rows += '<div style="border-top:1px dashed #ffaa0033;margin:4px 0;"></div>';
+
+                row('治疗加成 %', healAdd + '%');
+                row('受疗加成 %', healReceive + '%');
+                row('治疗系数', '1 + ' + healAdd + '% + ' + healReceive + '% = ' + (1 + (healAdd + healReceive) / 100).toFixed(4));
+                rows += '<div style="border-top:1px dashed #ffaa0033;margin:4px 0;"></div>';
+
+                row(label + '系数', coeff);
+                const formula = finalAtk.toFixed(1) + ' × ' + (1 + (healAdd + healReceive) / 100).toFixed(4) + ' × ' + coeff;
+                row('计算式', formula);
+
+                const finalRow = '<div class="tip-final"><span>💚 ' + label + '治疗量</span><span>' + (healVal > 0 ? healVal.toLocaleString() : '0') + '</span></div>';
+
+                return '<div class="tip-title">📋 ' + label + '治疗量 — 计算过程</div>' + rows + finalRow;
+            }
+
+            document.getElementById('healNormTip').innerHTML  = buildHealTip('norm');
+            document.getElementById('healSkillTip').innerHTML = buildHealTip('skill');
 
             // 公式详情
             const atkFormula = `${baseAtk} × (1 + ${finalAtkPct.toFixed(1)}%) = ${finalAtk.toFixed(1)}`;
@@ -1264,6 +1676,92 @@
             }
 
             document.getElementById('formulaDetail').innerHTML = formulaDetail;
+
+            // ===== 构建扣血量 tooltip =====
+            function buildDmgTip(type) {
+                // type: 'norm' | 'skill'
+                const coeff     = type === 'norm' ? normCoeff  : skillCoeff;
+                const dmgAdd    = type === 'norm' ? dmgAddNorm  : dmgAddSkill;
+                const dmgRed    = type === 'norm' ? dmgRedNorm  : dmgRedSkill;
+                const dmgCoeffV = type === 'norm' ? dmgCoeffNorm : dmgCoeffSkill;
+                const finalDmg  = type === 'norm' ? finalNormDamage : finalSkillDamage;
+                const label     = type === 'norm' ? '普攻' : '技能';
+                const floored   = type === 'norm' ? normFloored  : skillFloored;
+
+                if (coeff <= 0) return '<div class="tip-title">📋 ' + label + '扣血量计算过程</div><div style="color:#888;padding:6px 0;">系数为 0，未参与计算</div>';
+
+                const raw = 1 + (dmgAdd - dmgRed) / 100;
+                const clamped = Math.max(k1, Math.min(k2, raw));
+
+                let rows = '';
+                function row(label, val) {
+                    rows += '<div class="tip-row"><span class="tip-label">' + label + '</span><span class="tip-val">' + val + '</span></div>';
+                }
+
+                // 攻方
+                row('基础攻击', baseAtk.toLocaleString());
+                row('最终攻击 %', finalAtkPct.toFixed(1) + '%');
+                row('最终攻击值', finalAtk.toFixed(1) + '  (' + baseAtk + ' × (1 + ' + finalAtkPct.toFixed(1) + '%) )');
+                rows += '<div style="border-top:1px dashed #ffaa0033;margin:4px 0;"></div>';
+
+                // 守方
+                row('基础防御', baseDef.toLocaleString());
+                row('最终防御 %', finalDefPct.toFixed(1) + '%');
+                row('最终防御值', finalDef.toFixed(1) + '  (' + baseDef + ' × (1 + ' + finalDefPct.toFixed(1) + '%) )');
+                row('攻 - 防', baseDamage.toFixed(0));
+                rows += '<div style="border-top:1px dashed #ffaa0033;margin:4px 0;"></div>';
+
+                // 伤害系数
+                row('伤害加成', dmgAdd.toFixed(1) + '%');
+                row('伤害减免', dmgRed.toFixed(1) + '%');
+                row('clamp 原始值', '1 + (' + dmgAdd.toFixed(1) + '% - ' + dmgRed.toFixed(1) + '%) = ' + raw.toFixed(4));
+                row('clamp(' + k1 + ', raw, ' + k2 + ')', clamped.toFixed(4));
+                if (isCrit) {
+                    row('暴击加成', '× (2 + ' + critDmg + '%) = × ' + (2 + critDmg/100).toFixed(2));
+                    row('最终伤害系数', dmgCoeffV.toFixed(4) + ' (含暴击)');
+                } else {
+                    row('最终伤害系数', dmgCoeffV.toFixed(4));
+                }
+                rows += '<div style="border-top:1px dashed #ffaa0033;margin:4px 0;"></div>';
+
+                // 基础伤害
+                const preSuppressDmg = Math.floor(baseDamage * dmgCoeffV * coeff);
+                row(label + '系数', coeff);
+                row('基础扣血', baseDamage.toFixed(0) + ' × ' + dmgCoeffV.toFixed(4) + ' × ' + coeff + ' = ' + preSuppressDmg.toLocaleString());
+
+                // 压制
+                if (enableSuppress) {
+                    rows += '<div style="border-top:1px dashed #ffaa0033;margin:4px 0;"></div>';
+                    row('压制系数', suppressCoeff.toFixed(7));
+                    const afterSuppress = Math.floor(preSuppressDmg * (1 + suppressCoeff));
+                    row('压制后', preSuppressDmg + ' × (1 + ' + suppressCoeff.toFixed(4) + ') = ' + afterSuppress.toLocaleString());
+                }
+
+                // PVP
+                if (enablePvp) {
+                    rows += '<div style="border-top:1px dashed #ffaa0033;margin:4px 0;"></div>';
+                    const beforePvp = enableSuppress ? Math.floor(preSuppressDmg * (1 + suppressCoeff)) : preSuppressDmg;
+                    row('PVP攻击系数', pvpAtkCoeff.toFixed(3));
+                    row('PVP防御系数', pvpDefCoeff.toFixed(3));
+                    row('PVP后', beforePvp + ' × ' + pvpAtkCoeff.toFixed(3) + ' / ' + pvpDefCoeff.toFixed(3) + ' = ' + Math.floor(beforePvp * pvpAtkCoeff / pvpDefCoeff).toLocaleString());
+                }
+
+                let finalRow = '<div class="tip-final"><span>⚔️ ' + label + '扣血量</span><span>' + finalDmg.toLocaleString() + (floored ? ' ⚠️保底' : '') + '</span></div>';
+
+                return '<div class="tip-title">📋 ' + label + '扣血量 — 计算过程</div>' + rows + finalRow;
+            }
+
+            // 写入 tooltip 内容
+            if (normCoeff > 0) {
+                document.getElementById('normDamageTip').innerHTML = buildDmgTip('norm');
+            } else {
+                document.getElementById('normDamageTip').innerHTML = '<div class="tip-title">📋 普攻扣血量计算过程</div><div style="color:#888;padding:6px 0;">普攻系数为 0，未参与计算</div>';
+            }
+            if (skillCoeff > 0) {
+                document.getElementById('skillDamageTip').innerHTML = buildDmgTip('skill');
+            } else {
+                document.getElementById('skillDamageTip').innerHTML = '<div class="tip-title">📋 技能扣血量计算过程</div><div style="color:#888;padding:6px 0;">技能系数为 0，未参与计算</div>';
+            }
 
             // 保存所有输入数据到 localStorage
             saveAllData();
@@ -1307,9 +1805,9 @@
         // 重置指定小标题的数据
         function resetSection(section) {
             const sectionMap = {
-                'atkBasic': { ids: ['atkAtk', 'atkDmgAdd', 'critDmg', 'isCrit'], name: '基础属性已重置' },
-                'atkPhy': { ids: ['atkPhyAtkPct', 'atkPhyDmgAdd', 'atkNormDmgAdd', 'atkSkillDmgAdd'], name: '物理攻击已重置' },
-                'atkMag': { ids: ['atkMagAtkPct', 'atkMagDmgAdd', 'atkNormMagDmgAdd', 'atkSkillMagDmgAdd'], name: '魔法攻击已重置' },
+                'atkBasic': { ids: ['atkAtk', 'atkDmgAdd', 'atkAtkPct', 'critDmg', 'isCrit'], name: '基础属性已重置' },
+                'atkPhy': { ids: ['atkPhyDmgAdd', 'atkNormDmgAdd', 'atkSkillDmgAdd'], name: '物理攻击已重置' },
+                'atkMag': { ids: ['atkMagDmgAdd', 'atkNormMagDmgAdd', 'atkSkillMagDmgAdd'], name: '魔法攻击已重置' },
                 'heal': { ids: ['healAdd', 'healReceive'], name: '治疗量已重置' },
                 'defBasic': { ids: ['defBaseDef', 'defPhyDef', 'defMagDef', 'defDmgRed'], name: '基础属性已重置' },
                 'defPhy': { ids: ['defPhyDefPct', 'defPhyDefPct2', 'defPhyDmgRed', 'defNormPhyDmgRed', 'defSkillPhyDmgRed'], name: '物理防御已重置' },
@@ -1528,12 +2026,12 @@
                     // 保存到本地存储
                     try { localStorage.setItem(e.target.id, e.target.value); } catch(e) {}
                     // 输入时跳过验证
-                    try { skipValidation = true; calculate(); } catch(e) {} finally { skipValidation = false; }
+                    try { skipValidation = true; calculate(); } catch(err) { console.error('calculate error:', err); } finally { skipValidation = false; }
                 });
                 input.addEventListener('change', (e) => {
                     try { localStorage.setItem(e.target.id, e.target.value); } catch(e) {}
                     // 改变时跳过验证
-                    try { skipValidation = true; calculate(); } catch(e) {} finally { skipValidation = false; }
+                    try { skipValidation = true; calculate(); } catch(err) { console.error('calculate error:', err); } finally { skipValidation = false; }
                 });
 
                 // 页面加载时恢复数值
@@ -1598,7 +2096,7 @@
             'trove_1209.png'             : { text: '⚔️', style: 'font-size:28px;vertical-align:middle;margin-right:8px;' },
             'equipment_1508.png'         : { text: '🛡️', style: 'font-size:28px;vertical-align:middle;margin-right:8px;' },
             'skill.jpg'                  : { text: '✨', style: 'font-size:28px;vertical-align:middle;margin-right:8px;' },
-            'result.png'                 : { text: '📊', style: 'font-size:28px;vertical-align:middle;margin-right:8px;' },
+            'result.png'                 : { text: '📈', style: 'font-size:28px;vertical-align:middle;margin-right:8px;' },
             'panel_dungeon_shibai.png'   : null,   // 仅作背景，404 时直接隐藏
         };
 
@@ -1719,6 +2217,89 @@
     </style>
 
     <script>
+        // 点击 number 输入框时自动全选内容
+        document.addEventListener('focus', function(e) {
+            if (e.target.type === 'number') e.target.select();
+        }, true);
+
+        // ===== E. 按钮涟漪效果 =====
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.reset-btn');
+            if (!btn) return;
+            var ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            var rect = btn.getBoundingClientRect();
+            var size = Math.max(rect.width, rect.height);
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+            btn.appendChild(ripple);
+            ripple.addEventListener('animationend', function() { ripple.remove(); });
+        });
+
+        // ===== 扣血量 Tooltip 跟随鼠标显示 =====
+        (function() {
+            var activeTip = null;
+
+            function showTip(tip, e) {
+                tip.style.display = 'block';
+                positionTip(tip, e);
+                activeTip = tip;
+            }
+
+            function hideTip(tip) {
+                tip.style.display = 'none';
+                if (activeTip === tip) activeTip = null;
+            }
+
+            function positionTip(tip, e) {
+                var margin = 14;
+                var tw = tip.offsetWidth || 330;
+                var th = tip.offsetHeight || 200;
+                var vw = window.innerWidth;
+                var vh = window.innerHeight;
+                var x = e.clientX + margin;
+                var y = e.clientY + margin;
+                // 右边溢出：翻到左边
+                if (x + tw > vw - 8) x = e.clientX - tw - margin;
+                // 下边溢出：翻到上面
+                if (y + th > vh - 8) y = e.clientY - th - margin;
+                x = Math.max(8, x);
+                y = Math.max(8, y);
+                tip.style.left = x + 'px';
+                tip.style.top  = y + 'px';
+            }
+
+            // tip id 映射
+            var tipIdMap = {
+                'normDamage':     'normDamageTip',
+                'skillDamage':    'skillDamageTip',
+                'healNormAmount': 'healNormTip',
+                'healSkillAmount':'healSkillTip'
+            };
+
+            // 将所有 dmg-tip 移到 body 顶层，脱离 result-panel 的 transform 影响
+            Object.values(tipIdMap).forEach(function(tipId) {
+                var tip = document.getElementById(tipId);
+                if (tip) document.body.appendChild(tip);
+            });
+
+            ['normDamage', 'skillDamage', 'healNormAmount', 'healSkillAmount'].forEach(function(id) {
+                var valEl = document.getElementById(id);
+                if (!valEl) return;
+                var card = valEl.closest('.final-damage');
+                if (!card) return;
+                var tip  = document.getElementById(tipIdMap[id]);
+                if (!tip) return;
+
+                card.addEventListener('mouseenter', function(e) { showTip(tip, e); });
+                card.addEventListener('mouseleave', function()  { hideTip(tip); });
+                card.addEventListener('mousemove',  function(e) {
+                    if (tip.style.display !== 'none') positionTip(tip, e);
+                });
+            });
+        })();
+
         var _calcDisplay = '0';
         var _calcExpr = '';
         var _calcJustCalc = false;
@@ -1831,6 +2412,7 @@
 
             document.addEventListener('mouseup', function() { dragging = false; });
         })();
+
     </script>
 </body>
 </html>
