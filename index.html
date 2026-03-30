@@ -536,6 +536,26 @@
             }
         }
 
+        /* 扣血量标签切换动画 */
+        .final-damage .label.type-switch {
+            animation: labelSwitch 1s ease;
+        }
+        @keyframes labelSwitch {
+            0% {
+                transform: scale(1);
+                color: #faf0e6;
+            }
+            30% {
+                transform: scale(1.08);
+                color: #ffcc00;
+                text-shadow: 0 0 8px rgba(255,204,0,0.5);
+            }
+            100% {
+                transform: scale(1);
+                color: #faf0e6;
+            }
+        }
+
         @keyframes toastFade {
             0% {
                 opacity: 1;
@@ -1192,7 +1212,7 @@
             <h2><span style="font-size:20px;vertical-align:middle;margin-right:8px;">📈</span>计算结果</h2>
 
             <div class="final-damage">
-                <div class="label" style="color:#faf0e6;">⚔️ 普攻扣血量</div>
+                <div class="label" id="normDamageLabel" style="color:#faf0e6;">⚔️ 普攻扣血量</div>
                 <div class="dmg-tooltip-wrap">
                     <div class="value" id="normDamage">0</div>
                     <div class="dmg-tip" id="normDamageTip">
@@ -1202,7 +1222,7 @@
             </div>
 
             <div class="final-damage" style="margin-top:10px;">
-                <div class="label" style="color:#faf0e6;">⚔️ 技能扣血量</div>
+                <div class="label" id="skillDamageLabel" style="color:#faf0e6;">⚔️ 技能扣血量</div>
                 <div class="dmg-tooltip-wrap">
                     <div class="value" id="skillDamage">0</div>
                     <div class="dmg-tip" id="skillDamageTip">
@@ -1453,6 +1473,18 @@
             const k1 = getVal('k1');
             const k2 = getVal('k2') || 2;
 
+            // ===== 更新扣血量标签文本（物理伤害 vs 魔法伤害） =====
+            const damageTypeLabel = skillType === 'magical' ? '(魔法伤害)' : '(物理伤害)';
+            const normLabelEl  = document.getElementById('normDamageLabel');
+            const skillLabelEl = document.getElementById('skillDamageLabel');
+            normLabelEl.textContent  = '⚔️ 普攻扣血量 ' + damageTypeLabel;
+            skillLabelEl.textContent = '⚔️ 技能扣血量 ' + damageTypeLabel;
+            // 触发切换动画
+            normLabelEl.classList.remove('type-switch');
+            skillLabelEl.classList.remove('type-switch');
+            void normLabelEl.offsetWidth; // 强制重排，触发动画重新播放
+            normLabelEl.classList.add('type-switch');
+            skillLabelEl.classList.add('type-switch');
 
             // ===== 战力压制 =====
             const enableSuppress = document.getElementById('enableSuppress').checked;
