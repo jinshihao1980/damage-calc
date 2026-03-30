@@ -33,18 +33,7 @@
             transition: none !important;
         }
 
-        /* ===== B. 面板入场动画 ===== */
-        @keyframes panelSlideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .panel, .result-panel {
-            animation: panelSlideIn 0.5s ease both;
-        }
-        .container > :nth-child(1) { animation-delay: 0.05s; }
-        .container > :nth-child(2) { animation-delay: 0.15s; }
-        .container > :nth-child(3) { animation-delay: 0.25s; }
-        .container > :nth-child(4) { animation-delay: 0.35s; }
+        /* ===== B. 面板入场（无滑入，直接显示）===== */
 
         /* ===== D. 扣血量/治疗量框体 hover 边框 ===== */
         .final-damage {
@@ -78,8 +67,8 @@
             30%  { box-shadow: 0 0 30px rgba(255,204,0,0.6), 0 0 60px rgba(255,170,0,0.3); }
             100% { box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 10px rgba(255,170,0,0.15); }
         }
-        .result-panel.flash {
-            animation: resultFlash 0.6s ease forwards;
+        .result-panel.flash, .panel.flash {
+            animation: resultFlash 0.6s ease forwards !important;
         }
 
         body.light-mode {
@@ -366,6 +355,57 @@
             accent-color: #ffaa00;
         }
 
+        /* ===== 物理/魔法页签 ===== */
+        .atk-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+        .atk-tab {
+            flex: 1;
+            padding: 7px 0;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.45);
+            transition: background 0.2s, color 0.2s;
+            user-select: none;
+        }
+        .atk-tab:first-child {
+            border-right: 1px solid rgba(255, 170, 0, 0.3);
+        }
+        .atk-tab.active {
+            background: rgba(255, 170, 0, 0.18);
+            color: #ffcc00;
+        }
+        .atk-tab:hover:not(.active) {
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.7);
+        }
+        /* 页签内容，非 active 隐藏 */
+        .atk-tab-content { display: none; }
+        .atk-tab-content.active { display: block; }
+
+        body.light-mode .atk-tabs {
+            border-color: rgba(180, 120, 0, 0.35);
+        }
+        body.light-mode .atk-tab {
+            background: rgba(0,0,0,0.04);
+            color: rgba(0,0,0,0.4);
+        }
+        body.light-mode .atk-tab.active {
+            background: rgba(255, 170, 0, 0.15);
+            color: #b37700;
+        }
+        body.light-mode .atk-tab:first-child {
+            border-right-color: rgba(180, 120, 0, 0.35);
+        }
+
         .btn {
             padding: 12px 30px;
             font-size: 16px;
@@ -514,6 +554,68 @@
         .result-item .value.damage {
             color: #ffcc00;
             font-size: 16px;
+        }
+
+        /* ===== 折叠块：公式数据 ===== */
+        .collapse-block {
+            border: 1px solid rgba(255,170,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .collapse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255,170,0,0.1);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffcc00;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .collapse-header:hover {
+            background: rgba(255,170,0,0.2);
+        }
+
+        .collapse-arrow {
+            font-size: 11px;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .collapse-arrow.collapsed {
+            transform: rotate(180deg);
+        }
+
+        .collapse-body {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease;
+            opacity: 1;
+            padding: 0 8px 8px;
+        }
+
+        .collapse-body.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding: 0 8px;
+        }
+
+        body.light-mode .collapse-header {
+            color: #b8860b;
+            background: rgba(255,170,0,0.08);
+        }
+
+        body.light-mode .collapse-header:hover {
+            background: rgba(255,170,0,0.18);
+        }
+
+        body.light-mode .collapse-block {
+            border-color: rgba(184,134,11,0.3);
         }
 
         .formula {
@@ -818,49 +920,65 @@
                         <input type="checkbox" id="isCrit"> 是
                     </label>
                 </div>
+                <div class="attr-row">
+                    <label>普攻系数</label>
+                    <input type="number" id="normCoeff" value="0" step="0.1">
+                </div>
+                <div class="attr-row">
+                    <label>技能系数</label>
+                    <input type="number" id="skillCoeff" value="0" step="0.1">
+                </div>
+                <div class="tips">普攻系数=1.0，技能系数根据技能伤害填</div>
             </div>
 
             <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>物理攻击</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkPhy')">
+                <div class="atk-tabs">
+                    <div class="atk-tab active" id="atkTabPhy" onclick="switchAtkTab('physical')">⚔️ 物理攻击</div>
+                    <div class="atk-tab" id="atkTabMag" onclick="switchAtkTab('magical')">✨ 魔法攻击</div>
                 </div>
-                <div class="attr-row">
-                    <label>物伤加成 %</label>
-                    <input type="number" id="atkPhyDmgAdd" value="0">
-                    <span class="percent">%</span>
+                <!-- 物理攻击内容 -->
+                <div class="atk-tab-content active" id="atkContentPhy">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">物理攻击属性</span>
+                        <img src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('atkPhy')">
+                    </div>
+                    <div class="attr-row">
+                        <label>物伤加成 %</label>
+                        <input type="number" id="atkPhyDmgAdd" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>普通伤害加成 %</label>
+                        <input type="number" id="atkNormDmgAdd" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>技能伤害加成 %</label>
+                        <input type="number" id="atkSkillDmgAdd" value="0">
+                        <span class="percent">%</span>
+                    </div>
                 </div>
-                <div class="attr-row">
-                    <label>普通伤害加成 %</label>
-                    <input type="number" id="atkNormDmgAdd" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>技能伤害加成 %</label>
-                    <input type="number" id="atkSkillDmgAdd" value="0">
-                    <span class="percent">%</span>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>魔法攻击</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkMag')">
-                </div>
-                <div class="attr-row">
-                    <label>法伤加成 %</label>
-                    <input type="number" id="atkMagDmgAdd" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>普通伤害加成 %</label>
-                    <input type="number" id="atkNormMagDmgAdd" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>技能伤害加成 %</label>
-                    <input type="number" id="atkSkillMagDmgAdd" value="0">
-                    <span class="percent">%</span>
+                <!-- 魔法攻击内容 -->
+                <div class="atk-tab-content" id="atkContentMag">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">魔法攻击属性</span>
+                        <img src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('atkMag')">
+                    </div>
+                    <div class="attr-row">
+                        <label>法伤加成 %</label>
+                        <input type="number" id="atkMagDmgAdd" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>普通伤害加成 %</label>
+                        <input type="number" id="atkNormMagDmgAdd" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>技能伤害加成 %</label>
+                        <input type="number" id="atkSkillMagDmgAdd" value="0">
+                        <span class="percent">%</span>
+                    </div>
                 </div>
             </div>
 
@@ -912,95 +1030,87 @@
             </div>
 
             <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>物理防御</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('defPhy')">
+                <div class="atk-tabs">
+                    <div class="atk-tab active" id="defTabPhy" onclick="switchDefTab('physical')">⚔️ 物防加成</div>
+                    <div class="atk-tab" id="defTabMag" onclick="switchDefTab('magical')">✨ 魔防加成</div>
                 </div>
-                <div class="attr-row">
-                    <label>最终防御 %</label>
-                    <input type="number" id="defPhyDefPct" value="0">
-                    <span class="percent">%</span>
+                <!-- 物理防御内容 -->
+                <div class="atk-tab-content active" id="defContentPhy">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">物防加成</span>
+                        <img src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('defPhy')">
+                    </div>
+                    <div class="attr-row">
+                        <label>最终防御 %</label>
+                        <input type="number" id="defPhyDefPct" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>最终物理防御 %</label>
+                        <input type="number" id="defPhyDefPct2" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>物伤减免 %</label>
+                        <input type="number" id="defPhyDmgRed" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>普攻物伤减免 %</label>
+                        <input type="number" id="defNormPhyDmgRed" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>技能物伤减免 %</label>
+                        <input type="number" id="defSkillPhyDmgRed" value="0">
+                        <span class="percent">%</span>
+                    </div>
                 </div>
-                <div class="attr-row">
-                    <label>最终物理防御 %</label>
-                    <input type="number" id="defPhyDefPct2" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>物伤减免 %</label>
-                    <input type="number" id="defPhyDmgRed" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>普攻物伤减免 %</label>
-                    <input type="number" id="defNormPhyDmgRed" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>技能物伤减免 %</label>
-                    <input type="number" id="defSkillPhyDmgRed" value="0">
-                    <span class="percent">%</span>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>魔法防御</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('defMag')">
-                </div>
-                <div class="attr-row">
-                    <label>最终防御 %</label>
-                    <input type="number" id="defMagDefPct" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>最终魔法防御 %</label>
-                    <input type="number" id="defMagDefPct2" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>法伤减免 %</label>
-                    <input type="number" id="defMagDmgRed" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>普攻法伤减免 %</label>
-                    <input type="number" id="defNormMagDmgRed" value="0">
-                    <span class="percent">%</span>
-                </div>
-                <div class="attr-row">
-                    <label>技能法伤减免 %</label>
-                    <input type="number" id="defSkillMagDmgRed" value="0">
-                    <span class="percent">%</span>
+                <!-- 魔法防御内容 -->
+                <div class="atk-tab-content" id="defContentMag">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">魔防加成</span>
+                        <img src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('defMag')">
+                    </div>
+                    <div class="attr-row">
+                        <label>最终防御 %</label>
+                        <input type="number" id="defMagDefPct" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>最终魔法防御 %</label>
+                        <input type="number" id="defMagDefPct2" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>法伤减免 %</label>
+                        <input type="number" id="defMagDmgRed" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>普攻法伤减免 %</label>
+                        <input type="number" id="defNormMagDmgRed" value="0">
+                        <span class="percent">%</span>
+                    </div>
+                    <div class="attr-row">
+                        <label>技能法伤减免 %</label>
+                        <input type="number" id="defSkillMagDmgRed" value="0">
+                        <span class="percent">%</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- 技能设置 -->
         <div class="panel">
-            <h2><img src="skill.jpg" style="height:30px;vertical-align:middle;margin-right:8px;">技能设置</h2>
+            <h2><img src="skill.jpg" style="height:30px;vertical-align:middle;margin-right:8px;">战斗设置</h2>
 
-            <div class="section">
+            <div class="section" style="display:none;">
                 <div class="section-title">技能类型</div>
                 <div class="skill-type">
                     <label><input type="radio" name="skillType" value="physical" checked> 物理攻击</label>
                     <label><input type="radio" name="skillType" value="magical"> 魔法攻击</label>
                 </div>
-            </div>
-
-            <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>普攻/技能系数</span>
-                </div>
-                <div class="attr-row">
-                    <label>普攻系数</label>
-                    <input type="number" id="normCoeff" value="0" step="0.1">
-                </div>
-                <div class="attr-row">
-                    <label>技能系数</label>
-                    <input type="number" id="skillCoeff" value="0" step="0.1">
-                </div>
-                <div class="tips">普攻系数=1.0，技能系数根据技能伤害填</div>
             </div>
 
             <div class="section">
@@ -1081,66 +1191,6 @@
         <div class="result-panel">
             <h2><span style="font-size:20px;vertical-align:middle;margin-right:8px;">📈</span>计算结果</h2>
 
-            <div class="result-section">
-                <h3>攻击方计算</h3>
-                <div class="result-item">
-                    <span class="label">基础攻击</span>
-                    <span class="value" id="resBaseAtk">1000</span>
-                </div>
-                <div class="result-item">
-                    <span class="label">最终攻击 %</span>
-                    <span class="value" id="resFinalAtkPct">0%</span>
-                </div>
-                <div class="result-item">
-                    <span class="label">最终攻击值</span>
-                    <span class="value" id="resFinalAtk">1000</span>
-                </div>
-            </div>
-
-            <div class="result-section">
-                <h3>防御方计算</h3>
-                <div class="result-item">
-                    <span class="label">基础防御</span>
-                    <span class="value" id="resBaseDef">500</span>
-                </div>
-                <div class="result-item">
-                    <span class="label">最终防御 %</span>
-                    <span class="value" id="resFinalDefPct">0%</span>
-                </div>
-                <div class="result-item">
-                    <span class="label">最终防御值</span>
-                    <span class="value" id="resFinalDef">500</span>
-                </div>
-            </div>
-
-            <div class="result-section">
-                <h3>伤害加成/减免</h3>
-                <div class="result-item">
-                    <span class="label">伤害加成总计</span>
-                    <span class="value" id="resDmgAdd">0%</span>
-                </div>
-                <div class="result-item">
-                    <span class="label">伤害减免总计</span>
-                    <span class="value" id="resDmgRed">0%</span>
-                </div>
-                <div class="result-item">
-                    <span class="label">伤害系数</span>
-                    <span class="value" id="resDmgCoeff">1.0</span>
-                </div>
-            </div>
-
-            <div class="result-section">
-                <h3>⚔️ 战力压制</h3>
-                <div class="result-item">
-                    <span class="label">攻击/受击 战力比</span>
-                    <span class="value" id="resPowerRatio">1.0</span>
-                </div>
-                <div class="result-item">
-                    <span class="label">压制系数</span>
-                    <span class="value" id="resSuppressCoeff">0</span>
-                </div>
-            </div>
-
             <div class="final-damage">
                 <div class="label" style="color:#faf0e6;">⚔️ 普攻扣血量</div>
                 <div class="dmg-tooltip-wrap">
@@ -1181,15 +1231,103 @@
                 </div>
             </div>
 
-            <div class="formula">
-                <div>公式：扣血 = (攻方攻击 - 守方防御) × (1+ 伤害加减系数)× (普攻/技能)系数</div>
-                <div>治疗量 = 攻击 × (1 + 治疗加成 + 受疗加成) × 技能系数</div>
-                <div id="formulaDetail"></div>
+            <!-- 折叠区：公式数据 -->
+            <div class="collapse-block" id="formulaBlock" style="margin-top:16px;">
+                <div class="collapse-header" onclick="toggleFormulaBlock()" id="formulaBlockHeader">
+                    <span>📊 公式数据</span>
+                    <span class="collapse-arrow" id="formulaBlockArrow">▲</span>
+                </div>
+                <div class="collapse-body" id="formulaBlockBody">
+                    <div class="result-section" style="margin-top:4px;">
+                        <h3>攻击方计算</h3>
+                        <div class="result-item">
+                            <span class="label">基础攻击</span>
+                            <span class="value" id="resBaseAtk">1000</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">最终攻击 %</span>
+                            <span class="value" id="resFinalAtkPct">0%</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">最终攻击值</span>
+                            <span class="value" id="resFinalAtk">1000</span>
+                        </div>
+                    </div>
+
+                    <div class="result-section">
+                        <h3>防御方计算</h3>
+                        <div class="result-item">
+                            <span class="label">基础防御</span>
+                            <span class="value" id="resBaseDef">500</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">最终防御 %</span>
+                            <span class="value" id="resFinalDefPct">0%</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">最终防御值</span>
+                            <span class="value" id="resFinalDef">500</span>
+                        </div>
+                    </div>
+
+                    <div class="result-section">
+                        <h3>伤害加成/减免</h3>
+                        <div class="result-item">
+                            <span class="label">伤害加成总计</span>
+                            <span class="value" id="resDmgAdd">0%</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">伤害减免总计</span>
+                            <span class="value" id="resDmgRed">0%</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">伤害系数</span>
+                            <span class="value" id="resDmgCoeff">1.0</span>
+                        </div>
+                    </div>
+
+                    <div class="result-section">
+                        <h3>⚔️ 战力压制</h3>
+                        <div class="result-item">
+                            <span class="label">攻击/受击 战力比</span>
+                            <span class="value" id="resPowerRatio">1.0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">压制系数</span>
+                            <span class="value" id="resSuppressCoeff">0</span>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div>公式：扣血 = (攻方攻击 - 守方防御) × (1+ 伤害加减系数)× (普攻/技能)系数</div>
+                        <div>治疗量 = 攻击 × (1 + 治疗加成 + 受疗加成) × 技能系数</div>
+                        <div id="formulaDetail"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // ===== 公式数据折叠 =====
+        function toggleFormulaBlock() {
+            const body  = document.getElementById('formulaBlockBody');
+            const arrow = document.getElementById('formulaBlockArrow');
+            const isCollapsed = body.classList.toggle('collapsed');
+            arrow.classList.toggle('collapsed', isCollapsed);
+            localStorage.setItem('formulaBlockCollapsed', isCollapsed ? '1' : '0');
+        }
+
+        // 页面加载时恢复折叠状态
+        document.addEventListener('DOMContentLoaded', function () {
+            if (localStorage.getItem('formulaBlockCollapsed') === '1') {
+                const body  = document.getElementById('formulaBlockBody');
+                const arrow = document.getElementById('formulaBlockArrow');
+                body.classList.add('collapsed');
+                arrow.classList.add('collapsed');
+            }
+        });
+
         // 获取输入值
         function getVal(id) {
             const val = parseFloat(document.getElementById(id).value);
@@ -1243,6 +1381,11 @@
             requestAnimationFrame(step);
         }
 
+        // 当前技能类型（physical/magical），由 switchAtkTab 维护，避免依赖隐藏 radio 的 checked 状态
+        let currentSkillType = 'physical';
+        // 当前守方防御类型（physical/magical），由 switchDefTab 独立维护
+        let currentDefType = 'physical';
+
         // 计算
         let skipValidation = false;
         function calculate() {
@@ -1250,9 +1393,9 @@
             const normCoeff = getVal('normCoeff');
             const skillCoeff = getVal('skillCoeff');
             if (!skipValidation && normCoeff <= 0 && skillCoeff <= 0) {
-                // 普攻系数和技能系数都为0时，"普攻/技能系数"标题显示呼吸特效
+                // 普攻系数和技能系数都为0时，基础属性标题显示呼吸特效
                 document.querySelectorAll('.section-title').forEach(el => {
-                    if (el.textContent.includes('普攻/技能系数') || el.textContent.trim() === '普攻/技能系数') {
+                    if (el.textContent.trim() === '基础属性') {
                         el.classList.add('breathe-warn');
                     }
                 });
@@ -1303,7 +1446,7 @@
             const defSkillMagDmgRed = getVal('defSkillMagDmgRed'); // 技能魔法伤害减免
 
             // ===== 技能设置 =====
-            const skillType = document.querySelector('input[name="skillType"]:checked').value;
+            const skillType = currentSkillType;
             const critDmg = getVal('critDmg');
             const isCrit = document.getElementById('isCrit').checked;
             // 伤害系数 clamp 范围（从输入框读取）
@@ -1346,7 +1489,7 @@
             let dmgRedSkill = defDmgRed;  // 技能用
             let baseDef, finalDef;
 
-            if (skillType === 'physical') {
+            if (currentDefType === 'physical') {
                 baseDef = basePhyDef;
                 finalDefPct = defPhyDefPct + defPhyDefPct2;
                 dmgRedNorm  += defPhyDmgRed + defNormPhyDmgRed;   // 普攻：基础+物理+普通减免
@@ -1589,16 +1732,6 @@
                 healSkillEl.dataset.lastVal = 0;
             }
 
-            // ===== G. 结果面板闪光 =====
-            (function() {
-                var rp = document.querySelector('.result-panel');
-                if (!rp) return;
-                rp.classList.remove('flash');
-                void rp.offsetWidth; // 强制重排，重置动画
-                rp.classList.add('flash');
-                // 不移除 flash class，让 forwards 保持末态微光
-            })();
-
             // ===== 构建治疗量 tooltip =====
             function buildHealTip(type) {
                 const coeff    = type === 'norm' ? normCoeff  : skillCoeff;
@@ -1772,6 +1905,44 @@
             });
         }
 
+        // 物理/魔法页签切换
+        function switchAtkTab(type, skipCalc) {
+            var isPhy = (type === 'physical');
+            currentSkillType = type; // 同步全局变量，供 calculate() 使用
+            // 攻方页签
+            document.getElementById('atkTabPhy').classList.toggle('active', isPhy);
+            document.getElementById('atkTabMag').classList.toggle('active', !isPhy);
+            document.getElementById('atkContentPhy').classList.toggle('active', isPhy);
+            document.getElementById('atkContentMag').classList.toggle('active', !isPhy);
+            // 守方防御 tab 联动跟随（skipCalc 传 true，避免重复计算）
+            switchDefTab(type, true);
+            // 同步隐藏的 radio
+            var radio = document.querySelector('input[name="skillType"][value="' + type + '"]');
+            if (radio) radio.checked = true;
+            // 保存到 localStorage
+            try { localStorage.setItem('skillType', type); } catch(e) {}
+            // 触发计算
+            if (!skipCalc) {
+                try { skipValidation = true; calculate(); } catch(e) {} finally { skipValidation = false; }
+            }
+        }
+
+        // 守方防御页签独立切换
+        function switchDefTab(type, skipCalc) {
+            var isPhy = (type === 'physical');
+            currentDefType = type;
+            document.getElementById('defTabPhy').classList.toggle('active', isPhy);
+            document.getElementById('defTabMag').classList.toggle('active', !isPhy);
+            document.getElementById('defContentPhy').classList.toggle('active', isPhy);
+            document.getElementById('defContentMag').classList.toggle('active', !isPhy);
+            // 保存到 localStorage
+            try { localStorage.setItem('defType', type); } catch(e) {}
+            // 触发计算
+            if (!skipCalc) {
+                try { skipValidation = true; calculate(); } catch(e) {} finally { skipValidation = false; }
+            }
+        }
+
         // 重置所有数据
         function resetAll() {
             const skipIds = new Set(['k1', 'k2']);
@@ -1789,14 +1960,30 @@
                 radio.checked = false;
                 localStorage.removeItem(radio.id);
             });
-            // 默认选中物理攻击
+            // 默认选中物理攻击，同步切换 tab
             document.querySelector('input[name="skillType"][value="physical"]').checked = true;
+            switchAtkTab('physical', true); // true=跳过 calculate，后面统一调用
+            switchDefTab('physical', true); // 守方防御也重置为物理
             // 跳过验证重新计算
             skipValidation = true;
             calculate();
             skipValidation = false;
             // 重置后检查系数是否为0，显示特效
             checkCoeffWarn();
+            // 4个框体从左到右依次闪金光
+            var panels = document.querySelectorAll('.panel, .result-panel');
+            panels.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.classList.remove('flash');
+                    void el.offsetWidth;
+                    el.classList.add('flash');
+                    el.addEventListener('animationend', function onFlash(e) {
+                        if (e.animationName !== 'resultFlash') return;
+                        el.removeEventListener('animationend', onFlash);
+                        el.classList.remove('flash');
+                    }, { once: false });
+                }, i * 80);
+            });
             // 显示漂字
             showToast('页面数据已重置');
         }
@@ -1804,7 +1991,7 @@
         // 重置指定小标题的数据
         function resetSection(section) {
             const sectionMap = {
-                'atkBasic': { ids: ['atkAtk', 'atkDmgAdd', 'atkAtkPct', 'critDmg', 'isCrit'], name: '基础属性已重置' },
+                'atkBasic': { ids: ['atkAtk', 'atkDmgAdd', 'atkAtkPct', 'critDmg', 'isCrit', 'normCoeff', 'skillCoeff'], name: '基础属性已重置' },
                 'atkPhy': { ids: ['atkPhyDmgAdd', 'atkNormDmgAdd', 'atkSkillDmgAdd'], name: '物理攻击已重置' },
                 'atkMag': { ids: ['atkMagDmgAdd', 'atkNormMagDmgAdd', 'atkSkillMagDmgAdd'], name: '魔法攻击已重置' },
                 'heal': { ids: ['healAdd', 'healReceive'], name: '治疗量已重置' },
@@ -2006,6 +2193,33 @@
 
         // 页面加载时恢复数据
         loadAllData();
+
+        // 恢复页签状态（从 localStorage 读 skillType）
+        (function() {
+            var saved = localStorage.getItem('skillType') || 'physical';
+            switchAtkTab(saved, true); // 只切换 tab 显示，不触发 calculate
+            var savedDef = localStorage.getItem('defType') || 'physical';
+            switchDefTab(savedDef, true); // 恢复守方防御 tab
+        })();
+
+        // 页面加载后短暂延时，从左到右依次触发金光
+        (function() {
+            var panels = Array.from(document.querySelectorAll('.panel, .result-panel'));
+            setTimeout(function() {
+                panels.forEach(function(p, j) {
+                    setTimeout(function() {
+                        p.classList.remove('flash');
+                        void p.offsetWidth;
+                        p.classList.add('flash');
+                        p.addEventListener('animationend', function onFlash(e) {
+                            if (e.animationName !== 'resultFlash') return;
+                            p.removeEventListener('animationend', onFlash);
+                            p.classList.remove('flash');
+                        }, { once: false });
+                    }, j * 80);
+                });
+            }, 200);
+        })();
 
         // 恢复主题设置
         const savedTheme = localStorage.getItem('theme') || 'dark';
