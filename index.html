@@ -28,8 +28,8 @@
             transition: background-color 0.35s, border-color 0.35s, color 0.35s, box-shadow 0.35s;
         }
         /* 排除动画类元素，避免 transition 冲突 */
-        .breathe-warn, .btn-calculate, .value.updated, .final-damage .value.updated,
-        .attr-row:has(input:focus) {
+        .btn-calculate, .value.updated, .final-damage .value.updated,
+        .attr-row:has(input:focus), .reset-btn {
             transition: none !important;
         }
 
@@ -415,6 +415,10 @@
             transition: all 0.3s;
             margin-top: 10px;
         }
+        .btn:active {
+            transform: scale(0.95);
+            background: #cc8800 !important;
+        }
 
         .btn-calculate {
             background: #ffcc00;
@@ -452,16 +456,6 @@
                 color: #ff0000;
                 text-shadow: 0 0 35px rgba(255, 0, 0, 1), 0 0 70px rgba(255, 0, 0, 0.7), 0 0 110px rgba(255, 0, 0, 0.4);
             }
-        }
-
-        .breathe-warn {
-            animation: breatheWarn 1s ease-in-out infinite;
-            color: #ff4444 !important;
-            display: inline-block;
-        }
-
-        body.light-mode .breathe-warn {
-            color: #16160e !important;
         }
 
         .result-panel {
@@ -864,9 +858,10 @@
             transform: scale(1.05);
         }
 
-        .reset-btn:hover {
-            background: #ff8800;
-            transform: scale(1.05);
+        .reset-btn:active {
+            transition: all 0s !important;
+            transform: scale(0.95);
+            background: #cc7000 !important;
         }
 
         .modal .btn {
@@ -882,6 +877,18 @@
 
         .modal .btn:hover {
             background: #ffaa00;
+        }
+
+        .modal .btn:active {
+            transform: scale(0.95);
+            background: #cc8800 !important;
+        }
+
+        .refresh-icon {
+            transition: transform 0.1s;
+        }
+        .refresh-icon:active {
+            transform: scale(0.85) !important;
         }
     </style>
 </head>
@@ -908,12 +915,12 @@
     <div class="container">
         <!-- 攻击方面板 -->
         <div class="panel">
-            <h2><img src="trove_1209.png" style="height:35px;vertical-align:middle;margin-right:8px;">攻方（魂师）</h2>
+            <h2><img src="trove_1209.png" style="height:35px;vertical-align:middle;margin-right:8px;">攻方</h2>
 
-            <div class="section">
+                <div class="section">
                 <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>基础属性</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkBasic')">
+                    <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkBasic')">
                 </div>
                 <div class="attr-row">
                     <label>攻击力</label>
@@ -960,7 +967,7 @@
                 <div class="atk-tab-content active" id="atkContentPhy">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">物理攻击属性</span>
-                        <img src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('atkPhy')">
+                        <img class="refresh-icon" src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('atkPhy')">
                     </div>
                     <div class="attr-row">
                         <label>物伤加成 %</label>
@@ -982,7 +989,7 @@
                 <div class="atk-tab-content" id="atkContentMag">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">魔法攻击属性</span>
-                        <img src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('atkMag')">
+                        <img class="refresh-icon" src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('atkMag')">
                     </div>
                     <div class="attr-row">
                         <label>法伤加成 %</label>
@@ -1005,7 +1012,7 @@
             <div class="section">
                 <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>💚 治疗量</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('heal')">
+                    <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('heal')">
                 </div>
                 <div class="attr-row">
                     <label>治疗加成 %</label>
@@ -1023,12 +1030,12 @@
 
         <!-- 防御方面板 -->
         <div class="panel">
-            <h2><img src="equipment_1508.png" style="height:35px;vertical-align:middle;margin-right:8px;">守方（对手）</h2>
+            <h2><img src="equipment_1508.png" style="height:35px;vertical-align:middle;margin-right:8px;">守方</h2>
 
             <div class="section">
                 <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>基础属性</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('defBasic')">
+                    <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('defBasic')">
                 </div>
                 <div class="attr-row">
                     <label>防御</label>
@@ -1058,7 +1065,7 @@
                 <div class="atk-tab-content active" id="defContentPhy">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">物防加成</span>
-                        <img src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('defPhy')">
+                        <img class="refresh-icon" src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('defPhy')">
                     </div>
                     <div class="attr-row">
                         <label>最终防御 %</label>
@@ -1090,7 +1097,7 @@
                 <div class="atk-tab-content" id="defContentMag">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">魔防加成</span>
-                        <img src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('defMag')">
+                        <img class="refresh-icon" src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('defMag')">
                     </div>
                     <div class="attr-row">
                         <label>最终防御 %</label>
@@ -1151,7 +1158,7 @@
             <div class="section">
                 <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>⚔️ 战力压制(com_battle_design)</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('suppress')">
+                    <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('suppress')">
                 </div>
                 <div class="attr-row">
                     <label>是否生效</label>
@@ -1185,7 +1192,7 @@
             <div class="section">
                 <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>⚔️ PVP模块</span>
-                    <img src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('pvp')">
+                    <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('pvp')">
                 </div>
                 <div class="attr-row">
                     <label>是否生效</label>
@@ -1413,17 +1420,8 @@
             const normCoeff = getVal('normCoeff');
             const skillCoeff = getVal('skillCoeff');
             if (!skipValidation && normCoeff <= 0 && skillCoeff <= 0) {
-                // 普攻系数和技能系数都为0时，基础属性标题显示呼吸特效
-                document.querySelectorAll('.section-title').forEach(el => {
-                    if (el.textContent.trim() === '基础属性') {
-                        el.classList.add('breathe-warn');
-                    }
-                });
                 showModal('缺少普攻系数或技能系数数值');
                 return;
-            } else if (!skipValidation && (normCoeff > 0 || skillCoeff > 0)) {
-                // 系数有效时才移除呼吸特效，其他输入框变化不影响
-                document.querySelectorAll('.section-title').forEach(el => el.classList.remove('breathe-warn'));
             }
 
             // ===== 攻击方 =====
