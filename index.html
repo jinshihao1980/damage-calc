@@ -187,6 +187,8 @@
             max-width: 1800px;
             margin: 0 auto;
             align-items: start;
+            position: relative;
+            min-height: 600px;
         }
 
         @media (max-width: 1400px) {
@@ -207,6 +209,7 @@
             padding: 25px;
             flex: 1;
             min-width: 400px;
+            transition: transform 0.2s, opacity 0.2s;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
@@ -217,6 +220,67 @@
             border-bottom: 2px solid #ffaa00;
             padding-bottom: 10px;
             transition: all 0.3s;
+        }
+
+        /* 面板拖拽栏 */
+        .panel-dragbar {
+            background: rgba(255, 170, 0, 0.15);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            user-select: none;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            transition: background 0.2s;
+        }
+        .panel-dragbar:hover {
+            background: rgba(255, 170, 0, 0.25);
+        }
+        .panel-dragbar:active {
+            cursor: grabbing;
+        }
+        .panel-dragbar > div > span {
+            color: #ffaa00;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* 面板折叠按钮 */
+        .panel-collapse-btn {
+            font-size: 20px;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            line-height: 20px;
+            text-align: center;
+            border-radius: 4px;
+            color: #ffaa00;
+            transition: all 0.2s;
+        }
+        .panel-collapse-btn:hover {
+            background: rgba(255, 170, 0, 0.3);
+            transform: scale(1.1);
+        }
+        .panel-collapse-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* 面板可拖拽样式 */
+        .panel {
+            position: relative;
+        }
+        .panel.dragging {
+            opacity: 0.8;
+            z-index: 1000;
+        }
+        .panel.collapsed .panel-content {
+            display: none;
+        }
+        .panel.collapsed {
+            min-height: auto;
         }
 
         .section {
@@ -232,7 +296,7 @@
             margin-bottom: 10px;
             font-weight: bold;
             transition: all 0.3s;
-            padding: 0 10px;
+            padding: 0 3px;
             border-radius: 5px;
             height: 25px;
             display: flex;
@@ -774,18 +838,16 @@
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            pointer-events: none;
         }
 
         .modal-overlay.show {
-            display: flex;
+            display: block;
+            pointer-events: auto;
         }
 
         .modal {
@@ -885,6 +947,7 @@
         }
 
         .refresh-icon {
+            vertical-align: middle;
             transition: transform 0.1s;
         }
         .refresh-icon:active {
@@ -898,12 +961,13 @@
     </div>
     <div style="position:fixed; top:20px; left:20px; display:flex; flex-direction:column; gap:20px; z-index:100;">
         <button class="reset-btn" onclick="resetAll()"><img src="fresh.png" style="height:30px;vertical-align:middle;margin-right:1px;">重置数据</button>
-        <button class="reset-btn" onclick="calculate()" style="margin-top:1px;"><img src="zzx.png" style="height:30px;vertical-align:middle;margin-right:5px;">计算伤害</button>
+        <button class="reset-btn" onclick="calculate()" style="margin-top:1px;display:none;"><img src="zzx.png" style="height:30px;vertical-align:middle;margin-right:5px;">计算伤害</button>
         <div style="position:relative;display:inline-block;">
             <button class="reset-btn" onclick="generateShareLink()" style="height:42px;line-height:30px;">🔗 生成分享链接</button>
             <div class="share-tip">将当前页面数据生成链接并复制</div>
         </div>
         <button class="reset-btn" onclick="toggleCalc()" style="height:42px;line-height:30px;">🧮 计算器</button>
+        <button class="reset-btn" onclick="recoverAllPanels()" style="height:42px;line-height:30px;display:none;">📌 复原面板</button>
     </div>
     <div style="text-align:center;margin-bottom:20px;margin-top:1px;">
     <h1 id="mainTitle" style="background:transparent;border-radius:0;padding:12px 28px;display:inline-flex;align-items:center;gap:0;margin:0 auto;line-height:1;">
@@ -914,11 +978,20 @@
 
     <div class="container">
         <!-- 攻击方面板 -->
-        <div class="panel">
-            <h2><img src="trove_1209.png" style="height:35px;vertical-align:middle;margin-right:8px;">攻方</h2>
+        <div class="panel" id="atkPanel">
+            <div class="panel-dragbar">
+                <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                    <img src="trove_1209.png" style="height:30px;vertical-align:middle;">
+                    <span>攻方</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <span class="panel-collapse-btn" onclick="togglePanel('atkPanel')">−</span>
+                </div>
+            </div>
 
+            <div class="panel-content">
                 <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="section-title" style="display:flex; align-items:center; gap:8px;">
                     <span>基础属性</span>
                     <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('atkBasic')">
                 </div>
@@ -965,9 +1038,9 @@
                 </div>
                 <!-- 物理攻击内容 -->
                 <div class="atk-tab-content active" id="atkContentPhy">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">物理攻击属性</span>
-                        <img class="refresh-icon" src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('atkPhy')">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;">物理攻击属性</span>
+                        <img class="refresh-icon" src="fresh.png" style="height:26px;cursor:pointer;" onclick="resetSection('atkPhy')">
                     </div>
                     <div class="attr-row">
                         <label>物伤加成 %</label>
@@ -987,9 +1060,9 @@
                 </div>
                 <!-- 魔法攻击内容 -->
                 <div class="atk-tab-content" id="atkContentMag">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">魔法攻击属性</span>
-                        <img class="refresh-icon" src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('atkMag')">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;">魔法攻击属性</span>
+                        <img class="refresh-icon" src="fresh.png" style="height:26px;cursor:pointer;" onclick="resetSection('atkMag')">
                     </div>
                     <div class="attr-row">
                         <label>法伤加成 %</label>
@@ -1010,8 +1083,8 @@
             </div>
 
             <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>💚 治疗量</span>
+                <div class="section-title" style="display:flex; align-items:center; gap:8px;">
+                    <span>治疗量加成</span>
                     <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('heal')">
                 </div>
                 <div class="attr-row">
@@ -1026,14 +1099,24 @@
                 </div>
                 <div class="tips">治疗量 = 攻击 × (1 + 治疗加成 + 受疗加成) × 技能系数</div>
             </div>
+            </div>
         </div>
 
         <!-- 防御方面板 -->
-        <div class="panel">
-            <h2><img src="equipment_1508.png" style="height:35px;vertical-align:middle;margin-right:8px;">守方</h2>
+        <div class="panel" id="defPanel">
+            <div class="panel-dragbar">
+                <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                    <img src="equipment_1508.png" style="height:30px;vertical-align:middle;">
+                    <span>守方</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <span class="panel-collapse-btn" onclick="togglePanel('defPanel')">−</span>
+                </div>
+            </div>
 
-            <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="panel-content">
+                <div class="section">
+                <div class="section-title" style="display:flex; align-items:center; gap:8px;">
                     <span>基础属性</span>
                     <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('defBasic')">
                 </div>
@@ -1063,9 +1146,9 @@
                 </div>
                 <!-- 物理防御内容 -->
                 <div class="atk-tab-content active" id="defContentPhy">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">物防加成</span>
-                        <img class="refresh-icon" src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('defPhy')">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;">物防加成</span>
+                        <img class="refresh-icon" src="fresh.png" style="height:26px;cursor:pointer;" onclick="resetSection('defPhy')">
                     </div>
                     <div class="attr-row">
                         <label>最终防御 %</label>
@@ -1095,9 +1178,9 @@
                 </div>
                 <!-- 魔法防御内容 -->
                 <div class="atk-tab-content" id="defContentMag">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;padding:0 2px;">魔防加成</span>
-                        <img class="refresh-icon" src="fresh.png" style="height:22px;cursor:pointer;" onclick="resetSection('defMag')">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                        <span style="font-size:13px;color:#ffcc00;font-weight:bold;">魔防加成</span>
+                        <img class="refresh-icon" src="fresh.png" style="height:26px;cursor:pointer;" onclick="resetSection('defMag')">
                     </div>
                     <div class="attr-row">
                         <label>最终防御 %</label>
@@ -1126,13 +1209,23 @@
                     </div>
                 </div>
             </div>
+            </div>
         </div>
 
         <!-- 技能设置 -->
-        <div class="panel">
-            <h2><img src="skill.jpg" style="height:30px;vertical-align:middle;margin-right:8px;">战斗设置</h2>
+        <div class="panel" id="skillPanel">
+            <div class="panel-dragbar">
+                <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                    <img src="skill.jpg" style="height:30px;vertical-align:middle;">
+                    <span>战斗设置</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <span class="panel-collapse-btn" onclick="togglePanel('skillPanel')">−</span>
+                </div>
+            </div>
 
-            <div class="section" style="display:none;">
+            <div class="panel-content">
+                <div class="section" style="display:none;">
                 <div class="section-title">技能类型</div>
                 <div class="skill-type">
                     <label><input type="radio" name="skillType" value="physical" checked> 物理攻击</label>
@@ -1156,7 +1249,7 @@
             </div>
 
             <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="section-title" style="display:flex; align-items:center; gap:8px;">
                     <span>⚔️ 战力压制(com_battle_design)</span>
                     <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('suppress')">
                 </div>
@@ -1190,7 +1283,7 @@
             </div>
 
             <div class="section">
-                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="section-title" style="display:flex; align-items:center; gap:8px;">
                     <span>⚔️ PVP模块</span>
                     <img class="refresh-icon" src="fresh.png" style="height:26px; cursor:pointer;" onclick="resetSection('pvp')">
                 </div>
@@ -1213,12 +1306,22 @@
                 <div class="tips">PVP伤害 = 扣血量 × clamp(1+加成%,1,2) / clamp(1+减免%,1,2)</div>
             </div>
         </div>
+    </div>
 
-        <!-- 结果面板 (第4列) -->
-        <div class="result-panel">
-            <h2><span style="font-size:20px;vertical-align:middle;margin-right:8px;">📈</span>计算结果</h2>
+    <!-- 结果面板 (独立于容器) -->
+    <div class="result-panel panel" id="resultPanel" style="position:fixed; left:calc(100% - 340px); top:100px; width:320px; z-index:50;">
+        <div class="panel-dragbar">
+            <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                <span style="font-size:20px;">📈</span>
+                <span>计算结果</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span class="panel-collapse-btn" onclick="togglePanel('resultPanel')">−</span>
+            </div>
+        </div>
 
-            <div class="final-damage">
+        <div class="panel-content">
+                <div class="final-damage">
                 <div class="label" id="normDamageLabel" style="color:#faf0e6;">⚔️ 普攻扣血量</div>
                 <div class="dmg-tooltip-wrap">
                     <div class="value" id="normDamage">0</div>
@@ -1332,6 +1435,7 @@
                     </div>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 
@@ -1345,14 +1449,262 @@
             localStorage.setItem('formulaBlockCollapsed', isCollapsed ? '1' : '0');
         }
 
-        // 页面加载时恢复折叠状态
+        // ===== 面板折叠 =====
+        function togglePanel(panelId) {
+            const panel = document.getElementById(panelId);
+            const btn = panel.querySelector('.panel-collapse-btn');
+            const isCollapsed = panel.classList.toggle('collapsed');
+            btn.textContent = isCollapsed ? '+' : '−';
+            localStorage.setItem(panelId + '_collapsed', isCollapsed ? '1' : '0');
+        }
+
+        // ===== 面板拖拽 =====
+        let draggedPanel = null;
+        let dragOffset = { x: 0, y: 0 };
+        const SNAP_THRESHOLD = 50; // 自动对齐阈值（像素）
+
+        document.querySelectorAll('.panel-dragbar').forEach(dragbar => {
+            dragbar.addEventListener('mousedown', function(e) {
+                if (e.target.classList.contains('panel-collapse-btn')) return;
+
+                draggedPanel = dragbar.closest('.panel');
+                const rect = draggedPanel.getBoundingClientRect();
+
+                // 确保面板使用 left 定位
+                if (draggedPanel.style.right) {
+                    draggedPanel.style.right = 'auto';
+                    draggedPanel.style.left = rect.left + 'px';
+                }
+
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+
+                draggedPanel.classList.add('dragging');
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+
+        function onMouseMove(e) {
+            if (!draggedPanel) return;
+
+            // 检查是否是结果面板（独立定位）
+            const isResultPanel = draggedPanel.id === 'resultPanel';
+
+            if (isResultPanel) {
+                // 结果面板在整个窗口内拖拽
+                let newLeft = e.clientX - dragOffset.x;
+                let newTop = e.clientY - dragOffset.y;
+
+                draggedPanel.style.left = newLeft + 'px';
+                draggedPanel.style.top = newTop + 'px';
+            } else {
+                // 其他面板在容器内拖拽
+                const container = document.querySelector('.container');
+                const containerRect = container.getBoundingClientRect();
+
+                let newLeft = e.clientX - containerRect.left - dragOffset.x;
+                let newTop = e.clientY - containerRect.top - dragOffset.y;
+
+                draggedPanel.style.position = 'absolute';
+                draggedPanel.style.left = newLeft + 'px';
+                draggedPanel.style.top = newTop + 'px';
+            }
+        }
+
+        // 松手时若拖拽栏超出视窗则回弹，保证标签始终可点
+        function clampPanelToViewport(panel) {
+            const DRAGBAR_MIN = 40; // 至少保留 40px 的拖拽栏可见
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const rect = panel.getBoundingClientRect();
+
+            let left = parseFloat(panel.style.left) || 0;
+            let top  = parseFloat(panel.style.top)  || 0;
+
+            // 右侧超出：把面板左移，保证右侧至少有 DRAGBAR_MIN 像素可见
+            if (rect.left + DRAGBAR_MIN > vw) {
+                left = vw - DRAGBAR_MIN;
+            }
+            // 左侧超出：保证左侧至少有 DRAGBAR_MIN 像素可见
+            if (rect.right - DRAGBAR_MIN < 0) {
+                left = DRAGBAR_MIN - panel.offsetWidth;
+            }
+            // 顶部超出：拖拽栏必须整体可见（顶部不能出去）
+            if (rect.top < 0) {
+                top = top - rect.top; // 把顶部拉回 0
+            }
+            // 底部超出：底部保留 DRAGBAR_MIN 可见
+            if (rect.top + DRAGBAR_MIN > vh) {
+                top = vh - DRAGBAR_MIN;
+            }
+
+            panel.style.left = left + 'px';
+            panel.style.top  = top  + 'px';
+        }
+
+        // 把所有已跑出视窗的面板拉回来
+        function recoverAllPanels() {
+            // 1. 结果面板 (fixed 定位) 直接用 clamp 回弹
+            const resultPanel = document.getElementById('resultPanel');
+            if (resultPanel) {
+                // 若面板完全在视窗外则直接重置到默认位置
+                const rr = resultPanel.getBoundingClientRect();
+                const vw = window.innerWidth, vh = window.innerHeight;
+                if (rr.right < 0 || rr.left > vw || rr.bottom < 0 || rr.top > vh) {
+                    resultPanel.style.left = Math.max(0, vw - 340) + 'px';
+                    resultPanel.style.top  = '100px';
+                    resultPanel.style.right = 'auto';
+                } else {
+                    clampPanelToViewport(resultPanel);
+                }
+                savePanelPositions();
+            }
+
+            // 2. 容器内面板 (absolute 定位) — 超出容器边界则弹回容器左上角附近
+            const container = document.querySelector('.container');
+            if (!container) return;
+            const containerRect = container.getBoundingClientRect();
+            const panels = container.querySelectorAll('.panel[id]');
+            panels.forEach(panel => {
+                const pr = panel.getBoundingClientRect();
+                // 拖拽栏（顶部 40px）完全在视窗外时才介入
+                const dragbarVisible = pr.top < window.innerHeight && pr.top + 40 > 0
+                                    && pr.left < window.innerWidth && pr.right > 0;
+                if (!dragbarVisible) {
+                    panel.style.left = '0px';
+                    panel.style.top  = '0px';
+                }
+            });
+            savePanelPositions();
+        }
+
+        function onMouseUp(e) {
+            if (!draggedPanel) return;
+
+            draggedPanel.classList.remove('dragging');
+
+            // 松手时回弹，保证拖拽栏始终可点
+            clampPanelToViewport(draggedPanel);
+
+            // 只有容器内的面板才进行自动对齐
+            if (draggedPanel.id !== 'resultPanel') {
+                snapToGrid(draggedPanel);
+            }
+
+            draggedPanel = null;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+
+            // 保存位置到 localStorage
+            savePanelPositions();
+        }
+
+        // 自动对齐到网格
+        function snapToGrid(panel) {
+            const container = document.querySelector('.container');
+            const containerRect = container.getBoundingClientRect();
+
+            const panels = Array.from(container.querySelectorAll('.panel:not(.dragging)'));
+            const panelRect = panel.getBoundingClientRect();
+
+            let snapped = false;
+
+            // 检查是否接近其他面板的边缘
+            panels.forEach(otherPanel => {
+                if (otherPanel === panel) return;
+
+                const otherRect = otherPanel.getBoundingClientRect();
+                const containerLeft = containerRect.left;
+                const containerTop = containerRect.top;
+
+                // 水平对齐
+                if (Math.abs(panelRect.left - otherRect.left) < SNAP_THRESHOLD) {
+                    panel.style.left = (otherRect.left - containerLeft) + 'px';
+                    snapped = true;
+                } else if (Math.abs(panelRect.right - otherRect.right) < SNAP_THRESHOLD) {
+                    panel.style.left = (otherRect.right - containerRect.left - panel.offsetWidth) + 'px';
+                    snapped = true;
+                }
+
+                // 垂直对齐
+                if (Math.abs(panelRect.top - otherRect.top) < SNAP_THRESHOLD) {
+                    panel.style.top = (otherRect.top - containerTop) + 'px';
+                    snapped = true;
+                } else if (Math.abs(panelRect.bottom - otherRect.bottom) < SNAP_THRESHOLD) {
+                    panel.style.top = (otherRect.bottom - containerRect.top - panel.offsetHeight) + 'px';
+                    snapped = true;
+                }
+            });
+
+            // 如果没有对齐到其他面板，对齐到网格
+            if (!snapped) {
+                const GRID_SIZE = 20;
+                const currentLeft = parseFloat(panel.style.left);
+                const currentTop = parseFloat(panel.style.top);
+
+                panel.style.left = Math.round(currentLeft / GRID_SIZE) * GRID_SIZE + 'px';
+                panel.style.top = Math.round(currentTop / GRID_SIZE) * GRID_SIZE + 'px';
+            }
+        }
+
+        // 保存面板位置
+        function savePanelPositions() {
+            const panels = document.querySelectorAll('.panel[id]');
+            panels.forEach(panel => {
+                const id = panel.id;
+                const left = panel.style.left;
+                const top = panel.style.top;
+                if (left && top) {
+                    localStorage.setItem(id + '_pos', JSON.stringify({ left, top }));
+                }
+            });
+        }
+
+        // 恢复面板位置和折叠状态
         document.addEventListener('DOMContentLoaded', function () {
+            // 恢复折叠状态
             if (localStorage.getItem('formulaBlockCollapsed') === '1') {
                 const body  = document.getElementById('formulaBlockBody');
                 const arrow = document.getElementById('formulaBlockArrow');
                 body.classList.add('collapsed');
                 arrow.classList.add('collapsed');
             }
+
+            // 恢复面板折叠状态
+            ['atkPanel', 'defPanel', 'skillPanel', 'resultPanel'].forEach(panelId => {
+                if (localStorage.getItem(panelId + '_collapsed') === '1') {
+                    const panel = document.getElementById(panelId);
+                    const btn = panel.querySelector('.panel-collapse-btn');
+                    panel.classList.add('collapsed');
+                    btn.textContent = '+';
+                }
+
+                // 恢复面板位置
+                const posData = localStorage.getItem(panelId + '_pos');
+                if (posData) {
+                    try {
+                        const { left, top } = JSON.parse(posData);
+                        const panel = document.getElementById(panelId);
+                        // 结果面板使用 fixed，其他面板使用 absolute
+                        panel.style.position = panelId === 'resultPanel' ? 'fixed' : 'absolute';
+                        panel.style.left = left;
+                        panel.style.top = top;
+                        // 清除 right 属性，避免冲突
+                        if (panel.style.right) {
+                            panel.style.right = 'auto';
+                        }
+                    } catch (e) {
+                        console.error('Failed to restore panel position:', e);
+                    }
+                } else if (panelId === 'resultPanel') {
+                    // 如果结果面板没有保存的位置，初始化时清除 right 属性
+                    const panel = document.getElementById(panelId);
+                    if (panel && panel.style.right) {
+                        panel.style.right = 'auto';
+                    }
+                }
+            });
         });
 
         // 获取输入值
@@ -1406,6 +1758,16 @@
                 else textNode.nodeValue = isInt ? targetVal.toLocaleString() : targetVal.toFixed(3);
             }
             requestAnimationFrame(step);
+        }
+
+        // 弹窗函数
+        function showModal(message) {
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
         }
 
         // 当前技能类型（physical/magical），由 switchAtkTab 维护，避免依赖隐藏 radio 的 checked 状态
@@ -2306,9 +2668,6 @@
             console.error(e);
         }
 
-        // 页面加载完成后重新计算一次
-        calculate();
-
         // 检查是否有分享链接
         const urlParams = new URLSearchParams(window.location.search);
         const shareData = urlParams.get('d');
@@ -2390,24 +2749,13 @@
     </script>
 
     <!-- 弹窗 -->
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+    <div class="modal-overlay" id="modalOverlay">
         <div class="modal" onclick="event.stopPropagation()">
             <h3>⚠️ 提示</h3>
             <p id="modalMessage">缺少技能系数数值</p>
             <button class="btn" onclick="closeModal()">确定</button>
         </div>
     </div>
-
-    <script>
-        function showModal(message) {
-            document.getElementById('modalMessage').textContent = message;
-            document.getElementById('modalOverlay').classList.add('show');
-        }
-
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('show');
-        }
-    </script>
 
     <!-- 内置计算器 -->
     <div id="calcPanel" style="display:none;position:fixed;top:20px;left:170px;z-index:199;width:260px;background:#2a2520;border:1px solid #ffaa0055;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.6);overflow:hidden;font-family:'Microsoft YaHei',sans-serif;">
